@@ -181,19 +181,19 @@ class SettingsFragment : Fragment() {
         }
 
         binding.actionTranslate.setOnClickListener {
-            requireActivity().openURI("https://github.com/tommasoberlose/another-widget/blob/master/app/src/main/res/values/strings.xml")
+            requireActivity().openURI("https://github.com/dm1sh/another-widget/blob/patch/app/src/main/res/values/strings.xml")
         }
 
         binding.actionWebsite.setOnClickListener {
-            requireActivity().openURI("http://tommasoberlose.com/")
+            requireActivity().openURI("https://github.com/dm1sh/another-widget")
         }
 
         binding.actionFeedback.setOnClickListener {
-            requireActivity().openURI("https://github.com/tommasoberlose/another-widget/issues")
+            requireActivity().openURI("https://github.com/dm1sh/another-widget/issues")
         }
 
         binding.actionPrivacyPolicy.setOnClickListener {
-            requireActivity().openURI("https://github.com/tommasoberlose/another-widget/blob/master/privacy-policy.md")
+            requireActivity().openURI("https://github.com/dm1sh/another-widget/blob/patch/privacy-policy.md")
         }
 
         binding.actionRefreshWidget.setOnClickListener {
