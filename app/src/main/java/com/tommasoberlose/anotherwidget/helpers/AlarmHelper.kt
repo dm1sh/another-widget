@@ -7,7 +7,6 @@ import android.content.Intent
 import android.text.format.DateFormat
 import android.util.Log
 import com.tommasoberlose.anotherwidget.global.Actions
-import com.tommasoberlose.anotherwidget.receivers.ActivityDetectionReceiver
 import com.tommasoberlose.anotherwidget.receivers.UpdatesReceiver
 import com.tommasoberlose.anotherwidget.utils.setExactIfCanSchedule
 import java.text.SimpleDateFormat

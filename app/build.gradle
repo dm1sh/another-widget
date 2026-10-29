@@ -1,15 +1,9 @@
 apply plugin: 'com.android.application'
-apply plugin: 'com.google.gms.google-services'
-
-// Apply the Crashlytics Gradle plugin
-apply plugin: 'com.google.firebase.crashlytics'
-
 apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-kapt'
 
-def apikeyPropertiesFile = rootProject.file("apikey.properties")
-def apikeyProperties = new Properties()
-apikeyProperties.load(new FileInputStream(apikeyPropertiesFile))
+def keystorePath = System.getenv("SIGNING_STORE_FILE")
+def keystoreFile = keystorePath ? rootProject.file(keystorePath) : rootProject.file("dm1sh-signing.jks")
 
 android {
 
@@ -17,35 +11,39 @@ android {
     buildToolsVersion "30.0.3"
 
     defaultConfig {
-        applicationId "com.tommasoberlose.anotherwidget.azuo"
+        applicationId "com.tommasoberlose.anotherwidget"
         minSdkVersion 23
         targetSdkVersion 30
         versionCode 140
         versionName "2.3.3 P8"
-
-        buildConfigField("String", "GOOGLE_API_KEY", apikeyProperties['GOOGLE_API_KEY'])
     }
 
     signingConfigs {
-        config {
-            storeFile file('../anotherwidget.jks')
-            storePassword 'anotherwidget'
-            keyAlias 'anotherwidget'
-            keyPassword 'anotherwidget'
+        if (keystoreFile.exists()) {
+            dm1sh {
+                storeFile keystoreFile
+                storePassword System.getenv("SIGNING_STORE_PASSWORD")
+                keyAlias System.getenv("SIGNING_KEY_ALIAS")
+                keyPassword System.getenv("SIGNING_KEY_PASSWORD")
+                v1SigningEnabled true
+                v2SigningEnabled true
+            }
         }
     }
 
     buildTypes {
         release {
-            minifyEnabled true
-            shrinkResources true
+            minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
-            firebaseCrashlytics.mappingFileUploadEnabled false
             lintOptions.abortOnError false
-            signingConfig signingConfigs.config
+            if (keystoreFile.exists()) {
+                signingConfig signingConfigs.dm1sh
+            }
         }
         debug {
-            signingConfig signingConfigs.config
+            if (keystoreFile.exists()) {
+                signingConfig signingConfigs.dm1sh
+            }
         }
     }
 
@@ -114,17 +112,8 @@ dependencies {
     implementation 'com.github.bumptech.glide:glide:4.12.0'
     //kapt 'com.github.bumptech.glide:compiler:4.11.0'
 
-    // Fitness
-    implementation 'com.google.android.gms:play-services-fitness:20.0.0'
-    implementation 'com.google.android.gms:play-services-auth:19.0.0'
-
     //Weather
     implementation 'com.github.KwabenBerko:OpenWeatherMap-Android-Library:2.0.2'
-    implementation 'com.google.android.gms:play-services-location:18.0.0'
-
-    // Billing
-    //implementation 'com.android.billingclient:billing:3.0.3'
-    implementation 'com.android.billingclient:billing-ktx:3.0.3'
 
     // KTX
     implementation "androidx.core:core-ktx:1.5.0"
@@ -142,9 +131,6 @@ dependencies {
 
     //Coroutines
     //implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.4.1'
-
-    // Add the Firebase SDK for Crashlytics.
-    implementation 'com.google.firebase:firebase-crashlytics:18.0.0'
 
     // Preferences
     //implementation 'com.chibatching.kotpref:kotpref:2.13.1'

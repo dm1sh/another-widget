@@ -38,7 +38,6 @@
         <activity android:name=".ui.activities.tabs.CustomFontActivity" android:screenOrientation="portrait" />
         <activity android:name=".ui.activities.tabs.CustomLocationActivity" android:screenOrientation="portrait" />
         <activity android:name=".ui.activities.tabs.WeatherProviderActivity" android:screenOrientation="portrait" />
-        <activity android:name=".ui.activities.settings.SupportDevActivity" android:screenOrientation="portrait" />
         <activity android:name=".ui.activities.tabs.CustomDateActivity" android:screenOrientation="portrait" />
         <activity android:name=".ui.activities.settings.IntegrationsActivity" android:screenOrientation="portrait" />
         <activity android:name=".ui.activities.tabs.MusicPlayersFilterActivity" android:screenOrientation="portrait" />
@@ -127,20 +126,6 @@
                 <action android:name="android.intent.action.BATTERY_CHANGED"/>
             </intent-filter>
         </receiver>
-
-        <receiver android:name=".receivers.ActivityDetectionReceiver"
-            android:exported="true"
-            android:permission="com.google.android.gms.permission.ACTIVITY_RECOGNITION">
-            <intent-filter>
-                <action android:name="com.mypackage.ACTION_PROCESS_ACTIVITY_TRANSITIONS" />
-                <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
-                <action android:name="android.intent.action.BOOT_COMPLETED" />
-            </intent-filter>
-        </receiver>
-
-        <meta-data
-            android:name="firebase_crashlytics_collection_enabled"
-            android:value="false" />
     </application>
 
     <queries>

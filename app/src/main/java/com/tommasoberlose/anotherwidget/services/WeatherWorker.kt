@@ -10,16 +10,11 @@ import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
 import androidx.work.Worker
 import androidx.work.WorkerParameters
-import com.google.android.gms.common.ConnectionResult
-import com.google.android.gms.common.GoogleApiAvailability
-import com.google.android.gms.location.LocationServices
 import com.tommasoberlose.anotherwidget.global.Preferences
 import com.tommasoberlose.anotherwidget.network.WeatherNetworkApi
 import com.tommasoberlose.anotherwidget.utils.checkGrantedPermission
 import java.util.concurrent.TimeUnit
-import kotlin.coroutines.resume
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
 
 class WeatherWorker(context: Context, params: WorkerParameters) : CoroutineWorker(context, params) {
@@ -31,29 +26,19 @@ class WeatherWorker(context: Context, params: WorkerParameters) : CoroutineWorke
             (android.os.Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.Q ||
              context.checkGrantedPermission(Manifest.permission.ACCESS_BACKGROUND_LOCATION))
         ) {
-            if (GoogleApiAvailability.getInstance().isGooglePlayServicesAvailable(context)
-                == ConnectionResult.SUCCESS
-            ) {
-                suspendCancellableCoroutine { continuation ->
-                    LocationServices.getFusedLocationProviderClient(context).lastLocation.addOnCompleteListener {
-                        continuation.resume(if (it.isSuccessful) it.result else null)
-                    }
+            val lm = context.getSystemService(Context.LOCATION_SERVICE) as LocationManager
+            var location: Location? = null
+            for (provider in lm.getProviders(true)) {
+                lm.getLastKnownLocation(provider)?.let {
+                    if (location == null ||
+                        it.time - location!!.time > 2 * 60 * 1000 ||
+                        (it.time - location!!.time > -2 * 60 * 1000 && it.accuracy < location!!.accuracy))
+                        location = it
                 }
-            } else {
-                val lm = context.getSystemService(Context.LOCATION_SERVICE) as LocationManager
-                var location: Location? = null
-                for (provider in lm.getProviders(true)) {
-                    lm.getLastKnownLocation(provider)?.let {
-                        if (location == null ||
-                            it.time - location!!.time > 2 * 60 * 1000 ||
-                            (it.time - location!!.time > -2 * 60 * 1000 && it.accuracy < location!!.accuracy))
-                            location = it
-                    }
-                }
-                location
-            }?.let { location ->
-                Preferences.customLocationLat = location.latitude.toString()
-                Preferences.customLocationLon = location.longitude.toString()
+            }
+            location?.let {
+                Preferences.customLocationLat = it.latitude.toString()
+                Preferences.customLocationLon = it.longitude.toString()
             }
         }
         withContext(Dispatchers.IO) {

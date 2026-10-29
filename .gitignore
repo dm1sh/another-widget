@@ -7,3 +7,9 @@
 /captures
 .externalNativeBuild
 /tasksintegration/build
+*.jks
+*.keystore
+*.p12
+/apikey.properties
+/app/google-services.json
+

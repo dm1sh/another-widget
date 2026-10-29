@@ -9,10 +9,8 @@ import androidx.lifecycle.viewModelScope
 import com.koolio.library.DownloadableFontList
 import com.koolio.library.Font
 import com.koolio.library.FontList
-import com.tommasoberlose.anotherwidget.BuildConfig
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 
 class CustomFontViewModel(application: Application) : AndroidViewModel(application) {
 
@@ -21,8 +19,6 @@ class CustomFontViewModel(application: Application) : AndroidViewModel(applicati
 
     init {
         viewModelScope.launch(Dispatchers.IO) {
-
-
             val fontListCallback: DownloadableFontList.FontListCallback =
                 object : DownloadableFontList.FontListCallback {
                     override fun onFontListRetrieved(downloadedList: FontList?) {
@@ -33,8 +29,6 @@ class CustomFontViewModel(application: Application) : AndroidViewModel(applicati
 
                     }
                 }
-
-            DownloadableFontList.requestDownloadableFontList(fontListCallback, BuildConfig.GOOGLE_API_KEY)
         }
     }
 }
