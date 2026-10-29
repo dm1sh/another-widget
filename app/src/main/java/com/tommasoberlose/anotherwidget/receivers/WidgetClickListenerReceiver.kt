@@ -24,7 +24,11 @@ class WidgetClickListenerReceiver : BroadcastReceiver() {
                 }
             } catch (e: Exception) {
                 e.printStackTrace()
-                val uri = Uri.parse("https://www.google.com/search?q=weather")
+                val uri = Uri.parse("https://yandex.ru/pogoda")
+                    .buildUpon()
+                    .appendQueryParameter("lat", Preferences.customLocationLat)
+                    .appendQueryParameter("lon", Preferences.customLocationLon)
+                    .build()
                 val i = Intent(Intent.ACTION_VIEW, uri)
                 i.flags = Intent.FLAG_ACTIVITY_NEW_TASK
                 try {
