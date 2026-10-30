@@ -123,6 +123,7 @@
     <string name="weather_provider_info_weatherapi_title">Dieser Wetteranbieter benötigt einen\nAPI-Schlüssel, um korrekt zu funktionieren.</string>
     <string name="weather_provider_info_here_title">Dieser Wetteranbieter benötigt einen\nAPI-Schlüssel, um korrekt zu funktionieren.</string>
     <string name="weather_provider_info_accuweather_title">Dieser Wetteranbieter benötigt einen\nAPI-Schlüssel, um korrekt zu funktionieren.</string>
+    <string name="weather_provider_info_meteoblue_title">Dieser Wetteranbieter benötigt einen\nAPI-Schlüssel, um korrekt zu funktionieren.</string>
     <string name="weather_provider_info_weather_gov_title">Dieser Wetteranbieter funktioniert nur\nfür Standorte innerhalb der USA.</string>
     <string name="weather_provider_info_yr_title">Dieser Wetteranbieter lässt nur die\nTemperatureinheit Celsius zu.</string>
 
@@ -131,6 +132,7 @@
     <string name="weather_provider_info_weatherapi_subtitle">Öffnen Sie die Website des Anbieters, erstellen Sie ein Benutzerkonto und kopieren Sie den Standardschlüssel hierhin.</string>
     <string name="weather_provider_info_here_subtitle">Öffnen Sie die Website des Anbieters, erstellen Sie ein Benutzerkonto und kopieren Sie den Standardschlüssel hierhin.</string>
     <string name="weather_provider_info_accuweather_subtitle">Öffnen Sie die Website des Anbieters, erstellen Sie ein Benutzerkonto und kopieren Sie den Standardschlüssel hierhin.</string>
+    <string name="weather_provider_info_meteoblue_subtitle">Öffnen Sie die Website des Anbieters, erstellen Sie ein Benutzerkonto und kopieren Sie den Standardschlüssel hierhin.</string>
     <string name="weather_provider_info_weather_gov_subtitle">\n</string>
     <string name="weather_provider_info_yr_subtitle">\n</string>
 

@@ -161,12 +161,14 @@
     <string name="settings_weather_provider_accuweather" translatable="false">AccuWeather.com</string>
     <string name="settings_weather_provider_weather_gov" translatable="false">Weather.gov (USA)\nby National Weather Services</string>
     <string name="settings_weather_provider_yr" translatable="false">YR.no/Met.no\nby Meteorologisk Institutt</string>
+    <string name="settings_weather_provider_meteoblue" translatable="false">meteoblue.com</string>
 
     <string name="weather_provider_info_open_weather_title">This weather provider needs\nan API key to work correctly.</string>
     <string name="weather_provider_info_weatherbit_title">This weather provider needs\nan API key to work correctly.</string>
     <string name="weather_provider_info_weatherapi_title">This weather provider needs\nan API key to work correctly.</string>
     <string name="weather_provider_info_here_title">This weather provider needs\nan API key to work correctly.</string>
     <string name="weather_provider_info_accuweather_title">This weather provider needs\nan API key to work correctly.</string>
+    <string name="weather_provider_info_meteoblue_title">This weather provider needs\nan API key to work correctly.</string>
     <string name="weather_provider_info_weather_gov_title">This weather provider only works\nfor locations inside the USA.</string>
     <string name="weather_provider_info_yr_title">This weather provider only allows\nCelsius temperature unit.</string>
 
@@ -175,6 +177,7 @@
     <string name="weather_provider_info_weatherapi_subtitle">Open the provider website, create a personal account and copy the default key here.</string>
     <string name="weather_provider_info_here_subtitle">Open the provider website, create a personal account and copy the default key here.</string>
     <string name="weather_provider_info_accuweather_subtitle">Open the provider website, create a personal account and copy the default key here.</string>
+    <string name="weather_provider_info_meteoblue_subtitle">Open the provider website, create a personal account and copy the default key here.</string>
     <string name="weather_provider_info_weather_gov_subtitle">\n</string>
     <string name="weather_provider_info_yr_subtitle">\n</string>
 

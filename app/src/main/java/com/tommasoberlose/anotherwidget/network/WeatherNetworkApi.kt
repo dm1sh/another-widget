@@ -38,6 +38,7 @@ class WeatherNetworkApi(val context: Context) {
                 Constants.WeatherProvider.HERE -> useHereProvider(context)
                 Constants.WeatherProvider.ACCUWEATHER -> useAccuweatherProvider(context)
                 Constants.WeatherProvider.YR -> useYrProvider(context)
+                Constants.WeatherProvider.METEOBLUE -> useMeteoblueProvider(context)
             }
         } else {
             Preferences.weatherProviderLocationError = context.getString(R.string.weather_provider_error_missing_location)
@@ -526,6 +527,91 @@ class WeatherNetworkApi(val context: Context) {
                 Preferences.weatherProviderLocationError = ""
                 EventBus.getDefault().post(MainFragment.UpdateUiMessageEvent())
             }
+        }
+    }
+
+    private suspend fun useMeteoblueProvider(context: Context) {
+        if (Preferences.weatherProviderApiMeteoblue.isNotBlank()) {
+            val repository = MeteoblueRepository()
+
+            when (val response = repository.getWeather()) {
+                is NetworkResponse.Success -> {
+                    try {
+                        val parsed = MeteoblueRepository.parseWeatherResponse(
+                            body = response.body,
+                            requestedUnit = Preferences.weatherTempUnit
+                        )
+                        if (parsed != null) {
+                            Preferences.weatherTemp = parsed.temperature
+                            Preferences.weatherIcon = parsed.iconCode
+                            Preferences.weatherRealTempUnit = parsed.temperatureUnit
+                            MainWidget.updateWidget(context)
+
+                            Preferences.weatherProviderError = ""
+                            Preferences.weatherProviderLocationError = ""
+                        } else {
+                            Preferences.weatherProviderError = context.getString(R.string.weather_provider_error_generic)
+                            Preferences.weatherProviderLocationError = ""
+                            WeatherHelper.removeWeather(context)
+                        }
+                    } catch (ex: Exception) {
+                        Preferences.weatherProviderError = context.getString(R.string.weather_provider_error_generic)
+                        Preferences.weatherProviderLocationError = ""
+                    } finally {
+                        EventBus.getDefault().post(MainFragment.UpdateUiMessageEvent())
+                    }
+                }
+                is NetworkResponse.ServerError -> {
+                    val errorMsg = MeteoblueRepository.extractErrorMessage(response.body)?.lowercase() ?: ""
+                    when (response.code) {
+                        401 -> {
+                            Preferences.weatherProviderError = context.getString(R.string.weather_provider_error_invalid_key)
+                            Preferences.weatherProviderLocationError = ""
+                        }
+                        403 -> {
+                            val isQuotaOrExpired = errorMsg.contains("expired") ||
+                                errorMsg.contains("credit") ||
+                                errorMsg.contains("quota") ||
+                                errorMsg.contains("limit")
+                            Preferences.weatherProviderError = context.getString(
+                                if (isQuotaOrExpired) R.string.weather_provider_error_expired_key
+                                else R.string.weather_provider_error_invalid_key
+                            )
+                            Preferences.weatherProviderLocationError = ""
+                        }
+                        429 -> {
+                            Preferences.weatherProviderError = context.getString(R.string.weather_provider_error_expired_key)
+                            Preferences.weatherProviderLocationError = ""
+                        }
+                        400, 404 -> {
+                            if (response.code == 404 || errorMsg.contains("lat") || errorMsg.contains("lon") || errorMsg.contains("coordinate")) {
+                                Preferences.weatherProviderError = ""
+                                Preferences.weatherProviderLocationError = context.getString(R.string.weather_provider_error_wrong_location)
+                            } else {
+                                Preferences.weatherProviderError = context.getString(R.string.weather_provider_error_generic)
+                                Preferences.weatherProviderLocationError = ""
+                            }
+                        }
+                        else -> {
+                            Preferences.weatherProviderError = context.getString(R.string.weather_provider_error_generic)
+                            Preferences.weatherProviderLocationError = ""
+                        }
+                    }
+                    WeatherHelper.removeWeather(context)
+                    EventBus.getDefault().post(MainFragment.UpdateUiMessageEvent())
+                }
+                else -> {
+                    Preferences.weatherProviderError = context.getString(R.string.weather_provider_error_connection)
+                    Preferences.weatherProviderLocationError = ""
+                    EventBus.getDefault().post(MainFragment.UpdateUiMessageEvent())
+                }
+            }
+        } else {
+            Preferences.weatherProviderError = context.getString(R.string.weather_provider_error_missing_key)
+            Preferences.weatherProviderLocationError = ""
+
+            WeatherHelper.removeWeather(context)
+            EventBus.getDefault().post(MainFragment.UpdateUiMessageEvent())
         }
     }
 }

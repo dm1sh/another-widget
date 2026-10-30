@@ -119,6 +119,7 @@
     <string name="weather_provider_info_weatherapi_title">Цьому постачальнику даних про погоду потрібен\nключ API для правильної роботи.</string>
     <string name="weather_provider_info_here_title">Цьому постачальнику даних про погоду потрібен\nключ API для правильної роботи.</string>
     <string name="weather_provider_info_accuweather_title">Цьому постачальнику даних про погоду потрібен\nключ API для правильної роботи.</string>
+    <string name="weather_provider_info_meteoblue_title">Цьому постачальнику даних про погоду потрібен\nключ API для правильної роботи.</string>
     <string name="weather_provider_info_weather_gov_title">Цей постачальник даних про погоду працює\nтільки для США.</string>
     <string name="weather_provider_info_yr_title">Цей постачальник даних про погоду використовує\nтільки градуси Цельсія.</string>
     <string name="weather_provider_info_open_weather_subtitle">Відкрийте сайт постачальника даних про погоду, створіть обліковий запис і скопіюйте ключ сюди.</string>
@@ -126,6 +127,7 @@
     <string name="weather_provider_info_weatherapi_subtitle">Відкрийте сайт постачальника даних про погоду, створіть обліковий запис і скопіюйте ключ сюди.</string>
     <string name="weather_provider_info_here_subtitle">Відкрийте сайт постачальника даних про погоду, створіть обліковий запис і скопіюйте ключ сюди.</string>
     <string name="weather_provider_info_accuweather_subtitle">Відкрийте сайт постачальника даних про погоду, створіть обліковий запис і скопіюйте ключ сюди.</string>
+    <string name="weather_provider_info_meteoblue_subtitle">Відкрийте сайт постачальника даних про погоду, створіть обліковий запис і скопіюйте ключ сюди.</string>
     <string name="weather_provider_info_weather_gov_subtitle">\n</string>
     <string name="weather_provider_info_yr_subtitle">\n</string>
     <string name="weather_provider_error_missing_key">Для вибраного постачальника даних про погоду потрібен ключ API.</string>

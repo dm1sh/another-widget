@@ -157,6 +157,7 @@
     <string name="weather_provider_info_weatherapi_title">Ce fournisseur météo a besoin d\'une\nclé API pour fonctionner correctement.</string>
     <string name="weather_provider_info_here_title">Ce fournisseur météo a besoin d\'une\nclé API pour fonctionner correctement.</string>
     <string name="weather_provider_info_accuweather_title">Ce fournisseur météo a besoin d\'une\nclé API pour fonctionner correctement.</string>
+    <string name="weather_provider_info_meteoblue_title">Ce fournisseur météo a besoin d\'une\nclé API pour fonctionner correctement.</string>
     <string name="weather_provider_info_weather_gov_title">Ce fournisseur météo ne fonctionne que\npour les emplacements aux États-Unis.</string>
     <string name="weather_provider_info_yr_title">Ce fournisseur météo n\'autorise que\nles températures en unité Celsius.</string>
 
@@ -165,6 +166,7 @@
     <string name="weather_provider_info_weatherapi_subtitle">Ouvrez le site web du fournisseur, créez un compte et copiez ici la clé par défaut.</string>
     <string name="weather_provider_info_here_subtitle">Ouvrez le site web du fournisseur, créez un compte et copiez ici la clé par défaut.</string>
     <string name="weather_provider_info_accuweather_subtitle">Ouvrez le site web du fournisseur, créez un compte et copiez ici la clé par défaut.</string>
+    <string name="weather_provider_info_meteoblue_subtitle">Ouvrez le site web du fournisseur, créez un compte et copiez ici la clé par défaut.</string>
     <string name="weather_provider_info_weather_gov_subtitle">\n</string>
     <string name="weather_provider_info_yr_subtitle">\n</string>
 

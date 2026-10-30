@@ -65,7 +65,8 @@ object Constants {
         HERE(3),
         ACCUWEATHER(4),
         WEATHER_GOV(5),
-        YR(6);
+        YR(6),
+        METEOBLUE(7);
 
         companion object {
             private val map = values().associateBy(WeatherProvider::rawValue)

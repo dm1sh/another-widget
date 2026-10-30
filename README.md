@@ -32,7 +32,7 @@ This repository is a maintained, **Google-free (FOSS)** fork of [Tommaso Berlose
   * **Per-App Language Picker & Expanded Translations**: Built-in language selector with community translations including English, Danish, German, Spanish, French, Indonesian, Italian, Polish, Portuguese, Russian, Slovak, Ukrainian, and Simplified Chinese, plus RTL centered preview fixes.
 * **Modernized GMS-Free Location & Weather**:
   * Uses `LocationManagerCompat.getCurrentLocation` with multi-provider freshness/accuracy candidate scoring, stationary weather cache reuse, and reverse-geocoded city/district labels in Weather settings.
-  * Supports all 7 weather providers (**Yr.no**, **Weather.gov**, **OpenWeatherMap**, **Weatherbit**, **WeatherAPI**, **HERE**, **AccuWeather**) plus **Yandex Weather** web fallback (`https://yandex.ru/pogoda?lat=<lat>&lon=<lon>`) when tapping weather without a dedicated weather app.
+  * Supports all 8 weather providers (**Yr.no**, **Weather.gov**, **OpenWeatherMap**, **Weatherbit**, **WeatherAPI**, **HERE**, **AccuWeather**, **meteoblue**) plus **Yandex Weather** web fallback (`https://yandex.ru/pogoda?lat=<lat>&lon=<lon>`) when tapping weather without a dedicated weather app.
 
 ---
 

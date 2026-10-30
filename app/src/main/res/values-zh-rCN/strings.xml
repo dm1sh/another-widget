@@ -167,6 +167,7 @@
     <string name="weather_provider_info_weatherapi_title">该天气数据源需要API密钥才能正常工作。</string>
     <string name="weather_provider_info_here_title">该天气数据源需要API密钥才能正常工作。</string>
     <string name="weather_provider_info_accuweather_title">该天气数据源需要API密钥才能正常工作。</string>
+    <string name="weather_provider_info_meteoblue_title">该天气数据源需要API密钥才能正常工作。</string>
     <string name="weather_provider_info_weather_gov_title">该天气数据源仅对美国境内有效。</string>
     <string name="weather_provider_info_yr_title">该天气数据源仅支持摄氏度单位。</string>
 
@@ -175,6 +176,7 @@
     <string name="weather_provider_info_weatherapi_subtitle">前往天气数据源网站、创建个人账户并将默认密钥复制粘贴到此处。</string>
     <string name="weather_provider_info_here_subtitle">前往天气数据源网站、创建个人账户并将默认密钥复制粘贴到此处。</string>
     <string name="weather_provider_info_accuweather_subtitle">前往天气数据源网站、创建个人账户并将默认密钥复制粘贴到此处。</string>
+    <string name="weather_provider_info_meteoblue_subtitle">前往天气数据源网站、创建个人账户并将默认密钥复制粘贴到此处。</string>
     <string name="weather_provider_info_weather_gov_subtitle">\n</string>
     <string name="weather_provider_info_yr_subtitle">\n</string>
 

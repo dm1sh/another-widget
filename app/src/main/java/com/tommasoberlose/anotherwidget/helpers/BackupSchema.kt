@@ -97,7 +97,7 @@ object BackupSchema {
         Spec("PREF_SHOW_WEATHER", ValueType.BOOLEAN),
         Spec("PREF_WEATHER_TEMP_UNIT", ValueType.STRING, validator = { it == "C" || it == "F" }),
         Spec("PREF_WEATHER_REFRESH_PERIOD", ValueType.INT, validator = { it is Int && it in 0..5 }),
-        Spec("weatherProvider", ValueType.INT, validator = { it is Int && it in 0..6 }),
+        Spec("weatherProvider", ValueType.INT, validator = { it is Int && it in 0..7 }),
         Spec("weatherIconPack", ValueType.INT, validator = { it is Int && it in 0..3 }),
         Spec("PREF_CUSTOM_LOCATION_LAT", ValueType.STRING),
         Spec("PREF_CUSTOM_LOCATION_LON", ValueType.STRING),
@@ -109,6 +109,7 @@ object BackupSchema {
         Spec("weatherProviderApiWeatherApi", ValueType.STRING, isApiKey = true),
         Spec("weatherProviderApiWeatherBit", ValueType.STRING, isApiKey = true),
         Spec("weatherProviderApiAccuweather", ValueType.STRING, isApiKey = true),
+        Spec("weatherProviderApiMeteoblue", ValueType.STRING, isApiKey = true),
 
         // Clock
         Spec("PREF_SHOW_CLOCK", ValueType.BOOLEAN),

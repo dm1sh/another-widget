@@ -40,6 +40,7 @@ object Preferences : KotprefModel() {
     var weatherProviderApiWeatherApi by stringPref(default = "")
     var weatherProviderApiWeatherBit by stringPref(default = "")
     var weatherProviderApiAccuweather by stringPref(default = "")
+    var weatherProviderApiMeteoblue by stringPref(default = "")
     var weatherProvider by intPref(default = if ((ConfigurationCompat.getLocales(context.resources.configuration)[0] ?: java.util.Locale.getDefault()).isMetric()) Constants.WeatherProvider.YR.rawValue else Constants.WeatherProvider.WEATHER_GOV.rawValue)
     var weatherProviderError by stringPref(default = "")
     var weatherProviderLocationError by stringPref(default = "")

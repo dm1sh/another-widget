@@ -125,6 +125,7 @@
     <string name="weather_provider_info_weatherapi_title">Этой погодной службе нужен\nAPI-ключ для корректной работы.</string>
     <string name="weather_provider_info_here_title">Этой погодной службе нужен\nAPI-ключ для корректной работы.</string>
     <string name="weather_provider_info_accuweather_title">Этой погодной службе нужен\nAPI-ключ для корректной работы.</string>
+    <string name="weather_provider_info_meteoblue_title">Этой погодной службе нужен\nAPI-ключ для корректной работы.</string>
     <string name="weather_provider_info_weather_gov_title">Эта погодная служба работает только\nна территории США.</string>
     <string name="weather_provider_info_yr_title">Эта погодная служба показывает\nтемпературу только по Цельсию.</string>
     <string name="weather_provider_info_open_weather_subtitle">Перейдите на сайт погодной службы, создайте учетную запись и скопируйте стандартный ключ сюда.</string>
@@ -132,6 +133,7 @@
     <string name="weather_provider_info_weatherapi_subtitle">Перейдите на сайт погодной службы, создайте учетную запись и скопируйте стандартный ключ сюда.</string>
     <string name="weather_provider_info_here_subtitle">Перейдите на сайт погодной службы, создайте учетную запись и скопируйте стандартный ключ сюда.</string>
     <string name="weather_provider_info_accuweather_subtitle">Перейдите на сайт погодной службы, создайте учетную запись и скопируйте стандартный ключ сюда.</string>
+    <string name="weather_provider_info_meteoblue_subtitle">Перейдите на сайт погодной службы, создайте учетную запись и скопируйте стандартный ключ сюда.</string>
     <string name="weather_provider_info_weather_gov_subtitle">\n</string>
     <string name="weather_provider_info_yr_subtitle">\n</string>
     <string name="weather_provider_error_missing_key">Для работы выбранной погодной службы укажите API-ключ.</string>

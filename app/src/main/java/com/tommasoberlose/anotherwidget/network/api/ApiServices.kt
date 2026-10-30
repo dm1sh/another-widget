@@ -75,4 +75,17 @@ object ApiServices {
             @Query("lon") lon: String,
         ): NetworkResponse<HashMap<String, Any>, HashMap<String, Any>>
     }
+
+    interface MeteoblueService {
+        @Headers("Accept: application/json", "User-Agent: AnotherWidget")
+        @GET("packages/basic-1h")
+        suspend fun getWeather(
+            @Query("apikey") apiKey: String,
+            @Query("lat") lat: String,
+            @Query("lon") lon: String,
+            @Query("temperature") temperatureUnit: String,
+            @Query("tz") timeZone: String = "UTC",
+            @Query("forecast_days") forecastDays: Int = 1,
+        ): NetworkResponse<HashMap<String, Any>, HashMap<String, Any>>
+    }
 }

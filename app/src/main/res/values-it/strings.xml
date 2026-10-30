@@ -135,6 +135,7 @@
     <string name="weather_provider_info_weatherapi_title">Questo provider meteo necessita di una chiave API\nper un corretto funzionamento.</string>
     <string name="weather_provider_info_here_title">Questo provider meteo necessita di una chiave API\nper un corretto funzionamento.</string>
     <string name="weather_provider_info_accuweather_title">Questo provider meteo necessita di una chiave API\nper un corretto funzionamento.</string>
+    <string name="weather_provider_info_meteoblue_title">Questo provider meteo necessita di una chiave API\nper un corretto funzionamento.</string>
     <string name="weather_provider_info_weather_gov_title">Questo provider meteo funziona\nsolo negli Stati Uniti.</string>
     <string name="weather_provider_info_yr_title">Questo provider meteo funziona unicamente in gradi Celsius.</string>
 
@@ -143,6 +144,7 @@
     <string name="weather_provider_info_weatherapi_subtitle">Apri il sito del provider, crea un account gratuito e personale.\nCerca la chiave API di default nelle impostazioni e copiala qui.</string>
     <string name="weather_provider_info_here_subtitle">Apri il sito del provider, crea un account gratuito e personale.\nCerca la chiave API di default nelle impostazioni e copiala qui.</string>
     <string name="weather_provider_info_accuweather_subtitle">Apri il sito del provider, crea un account gratuito e personale.\nCerca la chiave API di default nelle impostazioni e copiala qui.</string>
+    <string name="weather_provider_info_meteoblue_subtitle">Apri il sito del provider, crea un account gratuito e personale.\nCerca la chiave API di default nelle impostazioni e copiala qui.</string>
     <string name="weather_provider_info_weather_gov_subtitle" />
     <string name="weather_provider_info_yr_subtitle" />
 

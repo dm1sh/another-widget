@@ -47,6 +47,7 @@ object WeatherHelper {
             Constants.WeatherProvider.ACCUWEATHER -> R.string.settings_weather_provider_accuweather
             Constants.WeatherProvider.WEATHER_GOV -> R.string.settings_weather_provider_weather_gov
             Constants.WeatherProvider.YR -> R.string.settings_weather_provider_yr
+            Constants.WeatherProvider.METEOBLUE -> R.string.settings_weather_provider_meteoblue
         })
     }
 
@@ -59,6 +60,7 @@ object WeatherHelper {
             Constants.WeatherProvider.ACCUWEATHER -> R.string.weather_provider_info_accuweather_title
             Constants.WeatherProvider.WEATHER_GOV -> R.string.weather_provider_info_weather_gov_title
             Constants.WeatherProvider.YR -> R.string.weather_provider_info_yr_title
+            Constants.WeatherProvider.METEOBLUE -> R.string.weather_provider_info_meteoblue_title
             else -> R.string.nothing
         })
     }
@@ -72,6 +74,7 @@ object WeatherHelper {
             Constants.WeatherProvider.ACCUWEATHER -> R.string.weather_provider_info_accuweather_subtitle
             Constants.WeatherProvider.WEATHER_GOV -> R.string.weather_provider_info_weather_gov_subtitle
             Constants.WeatherProvider.YR -> R.string.weather_provider_info_yr_subtitle
+            Constants.WeatherProvider.METEOBLUE -> R.string.weather_provider_info_meteoblue_subtitle
             else -> R.string.nothing
         })
     }
@@ -85,6 +88,7 @@ object WeatherHelper {
             Constants.WeatherProvider.ACCUWEATHER -> "https://developer.accuweather.com/user/login"
             Constants.WeatherProvider.WEATHER_GOV -> "https://www.weather.gov/"
             Constants.WeatherProvider.YR -> "https://www.yr.no/"
+            Constants.WeatherProvider.METEOBLUE -> "https://www.meteoblue.com/en/weather-api"
             else -> ""
         }
     }
@@ -94,7 +98,8 @@ object WeatherHelper {
         Constants.WeatherProvider.WEATHER_BIT,
         Constants.WeatherProvider.WEATHER_API,
         Constants.WeatherProvider.HERE,
-        Constants.WeatherProvider.ACCUWEATHER -> true
+        Constants.WeatherProvider.ACCUWEATHER,
+        Constants.WeatherProvider.METEOBLUE -> true
 
         Constants.WeatherProvider.WEATHER_GOV,
         Constants.WeatherProvider.YR -> false
@@ -107,6 +112,7 @@ object WeatherHelper {
         Constants.WeatherProvider.WEATHER_API -> Preferences.weatherProviderApiWeatherApi
         Constants.WeatherProvider.HERE -> Preferences.weatherProviderApiHere
         Constants.WeatherProvider.ACCUWEATHER -> Preferences.weatherProviderApiAccuweather
+        Constants.WeatherProvider.METEOBLUE -> Preferences.weatherProviderApiMeteoblue
         Constants.WeatherProvider.WEATHER_GOV -> ""
         Constants.WeatherProvider.YR -> ""
         else -> ""
@@ -503,5 +509,48 @@ object WeatherHelper {
         "snowshowersandthunder" -> "13"
         else -> ""
     } + if (iconCode.substringAfter('_', "day") == "day") "d" else "n"
+
+    /**
+     * Maps meteoblue hourly/detailed pictocodes (1..35) to Another Widget icon codes.
+     */
+    fun getMeteoblueIcon(pictocode: Int?, isDaylight: Boolean): String {
+        val base = when (pictocode) {
+            1, 2 -> "01"               // Clear, cloudless / few cirrus
+            3, 4, 5, 6, 7, 8 -> "02"   // Clear with cirrus/low clouds, partly cloudy
+            9, 10, 11, 12 -> "03"      // Partly cloudy with cirrus / mixed clouds
+            13, 14, 15 -> "50"         // Clear but hazy
+            16, 17, 18 -> "82"         // Fog / low stratus clouds
+            19, 20, 21 -> "03"         // Mostly cloudy
+            22 -> "04"                 // Overcast
+            23, 25, 31, 33 -> "10"     // Rain / showers / light or heavy rain
+            24, 26, 29, 32, 34 -> "13" // Snow / heavy snow / snow showers / snowstorm
+            27, 28 -> "11"             // Rain / light rain, thunderstorms likely
+            30 -> "09"                 // Heavy rain, thunderstorms likely
+            35 -> "81"                 // Overcast with mixture of snow and rain
+            else -> ""
+        }
+        return if (base.isEmpty()) "" else base + if (isDaylight) "d" else "n"
+    }
+
+    /**
+     * Maps meteoblue daily/current summary pictocodes (iday 1..17, 20..25) as a fallback
+     * when `data_current` is returned without `pictocode_detailed`.
+     */
+    fun getMeteoblueDailyIcon(pictocode: Int?, isDaylight: Boolean): String {
+        val base = when (pictocode) {
+            1 -> "01"
+            2, 3 -> "02"
+            4 -> "04"
+            5 -> "82"
+            6, 7, 12, 14, 16 -> "10"
+            8, 21, 22, 23, 25 -> "11"
+            9, 10, 13, 15, 17 -> "13"
+            11 -> "81"
+            20 -> "03"
+            24 -> "09"
+            else -> ""
+        }
+        return if (base.isEmpty()) "" else base + if (isDaylight) "d" else "n"
+    }
 
 }

@@ -5,6 +5,8 @@ import com.tommasoberlose.anotherwidget.helpers.BackupManager
 import com.tommasoberlose.anotherwidget.helpers.LocationCandidates
 import com.tommasoberlose.anotherwidget.helpers.LocationChangePolicy
 import com.tommasoberlose.anotherwidget.helpers.LocationSample
+import com.tommasoberlose.anotherwidget.helpers.WeatherHelper
+import com.tommasoberlose.anotherwidget.network.repository.MeteoblueRepository
 import com.tommasoberlose.anotherwidget.ui.viewmodels.tabs.TimeZoneSelectorViewModel
 import me.everything.providers.android.calendar.Calendar
 import me.everything.providers.android.calendar.Event as ProviderEvent
@@ -199,5 +201,85 @@ class HelpersUnitTest {
         }
         assertEquals(77L, Entity.getId(ev))
         assertEquals("Standup", Entity.getColumnValue("title", ev))
+    }
+
+    @Test
+    fun meteoblue_mapsAllWeatherConditionFamiliesAndDayNight() {
+        assertEquals(Constants.WeatherProvider.METEOBLUE, Constants.WeatherProvider.fromInt(7))
+        assertTrue(WeatherHelper.isKeyRequired(Constants.WeatherProvider.METEOBLUE))
+        assertEquals("01d", WeatherHelper.getMeteoblueIcon(1, true))
+        assertEquals("01n", WeatherHelper.getMeteoblueIcon(2, false))
+        assertEquals("02d", WeatherHelper.getMeteoblueIcon(7, true))
+        assertEquals("03n", WeatherHelper.getMeteoblueIcon(20, false))
+        assertEquals("04d", WeatherHelper.getMeteoblueIcon(22, true))
+        assertEquals("50d", WeatherHelper.getMeteoblueIcon(14, true))
+        assertEquals("82n", WeatherHelper.getMeteoblueIcon(16, false))
+        assertEquals("10d", WeatherHelper.getMeteoblueIcon(23, true))
+        assertEquals("13n", WeatherHelper.getMeteoblueIcon(24, false))
+        assertEquals("11d", WeatherHelper.getMeteoblueIcon(27, true))
+        assertEquals("09n", WeatherHelper.getMeteoblueIcon(30, false))
+        assertEquals("81d", WeatherHelper.getMeteoblueIcon(35, true))
+        assertEquals("", WeatherHelper.getMeteoblueIcon(999, true))
+    }
+
+    @Test
+    fun meteoblue_parsesBasic1hClosestHourAndUnitConversion() {
+        val nowMs = MeteoblueRepository.parseMeteoblueTimeEpochMs("2026-10-30 14:20", 0.0)!!
+        val body = mapOf(
+            "metadata" to mapOf("utc_timeoffset" to 0.0),
+            "units" to mapOf("temperature" to "C"),
+            "data_1h" to mapOf(
+                "time" to listOf("2026-10-30 13:00", "2026-10-30 14:00", "2026-10-30 15:00"),
+                "temperature" to listOf(10.0, 15.0, 12.0),
+                "pictocode" to listOf(1, 23, 22),
+                "isdaylight" to listOf(1, 1, 0)
+            )
+        )
+
+        val parsedC = MeteoblueRepository.parseWeatherResponse(body, requestedUnit = "C", nowEpochMs = nowMs)
+        assertNotNull(parsedC)
+        assertEquals(15.0f, parsedC!!.temperature, 0.01f)
+        assertEquals("C", parsedC.temperatureUnit)
+        assertEquals("10d", parsedC.iconCode)
+
+        val parsedF = MeteoblueRepository.parseWeatherResponse(body, requestedUnit = "F", nowEpochMs = nowMs)
+        assertNotNull(parsedF)
+        assertEquals(59.0f, parsedF!!.temperature, 0.01f)
+        assertEquals("F", parsedF.temperatureUnit)
+        assertEquals("10d", parsedF.iconCode)
+
+        val currentFallback = mapOf(
+            "units" to mapOf("temperature" to "F"),
+            "data_current" to mapOf(
+                "temperature" to 68.0,
+                "isdaylight" to 0,
+                "pictocode_detailed" to 2
+            )
+        )
+        val parsedCurrent = MeteoblueRepository.parseWeatherResponse(currentFallback, requestedUnit = "F")
+        assertNotNull(parsedCurrent)
+        assertEquals(68.0f, parsedCurrent!!.temperature, 0.01f)
+        assertEquals("01n", parsedCurrent.iconCode)
+
+        val errorPayload = mapOf("error" to true, "error_message" to "Apikey was specified, but is not valid.")
+        assertNull(MeteoblueRepository.parseWeatherResponse(errorPayload, requestedUnit = "C"))
+        assertEquals("Apikey was specified, but is not valid.", MeteoblueRepository.extractErrorMessage(errorPayload))
+    }
+
+    @Test
+    fun backupManager_supportsMeteoblueProviderAndApiKeyFiltering() {
+        val raw = mapOf<String, Any?>(
+            "weatherProvider" to Constants.WeatherProvider.METEOBLUE.rawValue,
+            "weatherProviderApiMeteoblue" to "mb-secret-key"
+        )
+        val withKeys = BackupManager.serializeToJson(raw, appVersionCode = 100, appVersionName = "2.2.3", includeApiKeys = true)
+        val restoredWithKeys = BackupManager.parseBackupJson(withKeys, restoreApiKeys = true) as BackupManager.ParseResult.Success
+        assertEquals(Constants.WeatherProvider.METEOBLUE.rawValue, restoredWithKeys.entries["weatherProvider"])
+        assertEquals("mb-secret-key", restoredWithKeys.entries["weatherProviderApiMeteoblue"])
+
+        val withoutKeys = BackupManager.serializeToJson(raw, appVersionCode = 100, appVersionName = "2.2.3", includeApiKeys = false)
+        val restoredWithoutKeys = BackupManager.parseBackupJson(withoutKeys, restoreApiKeys = true) as BackupManager.ParseResult.Success
+        assertEquals(Constants.WeatherProvider.METEOBLUE.rawValue, restoredWithoutKeys.entries["weatherProvider"])
+        assertFalse(restoredWithoutKeys.entries.containsKey("weatherProviderApiMeteoblue"))
     }
 }

@@ -116,6 +116,7 @@
     <string name="weather_provider_info_weatherapi_title">Penyedia cuaca ini memerlukan\nkunci API agar berfungsi dengan benar.</string>
     <string name="weather_provider_info_here_title">Penyedia cuaca ini memerlukan\nkunci API agar berfungsi dengan benar.</string>
     <string name="weather_provider_info_accuweather_title">Penyedia cuaca ini memerlukan\nkunci API agar berfungsi dengan benar.</string>
+    <string name="weather_provider_info_meteoblue_title">Penyedia cuaca ini memerlukan\nkunci API agar berfungsi dengan benar.</string>
     <string name="weather_provider_info_weather_gov_title">Penyedia cuaca ini hanya berfungsi\nuntuk lokasi di dalam AS.</string>
     <string name="weather_provider_info_yr_title">Penyedia cuaca ini hanya mengizinkan\nsatuan suhu Celcius.</string>
     <string name="weather_provider_info_open_weather_subtitle">Buka situs web penyedia, buat akun pribadi dan salin kunci default di sini.</string>
@@ -123,6 +124,7 @@
     <string name="weather_provider_info_weatherapi_subtitle">Buka situs web penyedia, buat akun pribadi dan salin kunci default di sini.</string>
     <string name="weather_provider_info_here_subtitle">Buka situs web penyedia, buat akun pribadi dan salin kunci default di sini.</string>
     <string name="weather_provider_info_accuweather_subtitle">Buka situs web penyedia, buat akun pribadi dan salin kunci default di sini.</string>
+    <string name="weather_provider_info_meteoblue_subtitle">Buka situs web penyedia, buat akun pribadi dan salin kunci default di sini.</string>
     <string name="weather_provider_info_weather_gov_subtitle">\n</string>
     <string name="weather_provider_info_yr_subtitle">\n</string>
     <string name="weather_provider_error_missing_key">Penyedia cuaca yang Anda pilih memerlukan kunci API.</string>

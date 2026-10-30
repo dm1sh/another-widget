@@ -107,6 +107,7 @@
     <string name="weather_provider_info_weatherapi_title">Este proveedor del clima necesita\nuna clave de API para funcionar correctamente.</string>
     <string name="weather_provider_info_here_title">Este proveedor del clima necesita\nuna clave de API para funcionar correctamente.</string>
     <string name="weather_provider_info_accuweather_title">Este proveedor del clima necesita\nuna clave de API para funcionar correctamente.</string>
+    <string name="weather_provider_info_meteoblue_title">Este proveedor del clima necesita\nuna clave de API para funcionar correctamente.</string>
     <string name="weather_provider_info_weather_gov_title">Este proveedor del clima solo funciona\npara ubicaciones dentro de EEUU.</string>
     <string name="weather_provider_info_yr_title">Este proveedor del clima solo permite\nla unidad de temperatura Celsius.</string>
     <string name="weather_provider_info_open_weather_subtitle">Abre el sitio web del proveedor, crea una cuenta personal y copia aquí la clave predeterminada.</string>
@@ -114,6 +115,7 @@
     <string name="weather_provider_info_weatherapi_subtitle">Abre el sitio web del proveedor, crea una cuenta personal y copia aquí la clave predeterminada.</string>
     <string name="weather_provider_info_here_subtitle">Abre el sitio web del proveedor, crea una cuenta personal y copia aquí la clave predeterminada.</string>
     <string name="weather_provider_info_accuweather_subtitle">Abre el sitio web del proveedor, crea una cuenta personal y copia aquí la clave predeterminada.</string>
+    <string name="weather_provider_info_meteoblue_subtitle">Abre el sitio web del proveedor, crea una cuenta personal y copia aquí la clave predeterminada.</string>
     <string name="weather_provider_info_weather_gov_subtitle">\n</string>
     <string name="weather_provider_info_yr_subtitle">\n</string>
     <string name="weather_provider_error_missing_key">El proveedor del clima que has seleccionado requiere de una clave de API.</string>

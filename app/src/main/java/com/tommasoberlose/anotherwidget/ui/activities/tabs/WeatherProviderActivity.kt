@@ -75,16 +75,11 @@ class WeatherProviderActivity : AppCompatActivity() {
                     }
                     .checked(R.id.radioButton, provider.rawValue == Preferences.weatherProvider)
                     .with<TextView>(R.id.text2) {
-                        if (WeatherHelper.isKeyRequired(provider)) {
-                            it.text = getString(R.string.api_key_required_message)
-                        }
-
-                        if (provider == Constants.WeatherProvider.WEATHER_GOV) {
-                            it.text = getString(R.string.us_only_message)
-                        }
-
-                        if (provider == Constants.WeatherProvider.YR) {
-                            it.text = getString(R.string.celsius_only_message)
+                        it.text = when {
+                            WeatherHelper.isKeyRequired(provider) -> getString(R.string.api_key_required_message)
+                            provider == Constants.WeatherProvider.WEATHER_GOV -> getString(R.string.us_only_message)
+                            provider == Constants.WeatherProvider.YR -> getString(R.string.celsius_only_message)
+                            else -> ""
                         }
                     }
                     .clicked(R.id.action_configure) {

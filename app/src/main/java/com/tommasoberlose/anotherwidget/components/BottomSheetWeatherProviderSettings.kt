@@ -37,9 +37,9 @@ class BottomSheetWeatherProviderSettings(context: Context, callback: () -> Unit)
             Constants.WeatherProvider.WEATHER_API -> Preferences.weatherProviderApiWeatherApi
             Constants.WeatherProvider.HERE -> Preferences.weatherProviderApiHere
             Constants.WeatherProvider.ACCUWEATHER -> Preferences.weatherProviderApiAccuweather
+            Constants.WeatherProvider.METEOBLUE -> Preferences.weatherProviderApiMeteoblue
             Constants.WeatherProvider.WEATHER_GOV,
-            Constants.WeatherProvider.YR,
-            null -> ""
+            Constants.WeatherProvider.YR -> ""
         })
 
         binding.actionOpenProvider.setOnClickListener {
@@ -47,13 +47,14 @@ class BottomSheetWeatherProviderSettings(context: Context, callback: () -> Unit)
         }
 
         binding.actionSaveKey.setOnClickListener {
-            val key = binding.apiKey.editText?.text.toString()
+            val key = binding.apiKey.editText?.text.toString().trim()
             when (Constants.WeatherProvider.fromInt(Preferences.weatherProvider)) {
                 Constants.WeatherProvider.OPEN_WEATHER -> Preferences.weatherProviderApiOpen = key
                 Constants.WeatherProvider.WEATHER_BIT -> Preferences.weatherProviderApiWeatherBit = key
                 Constants.WeatherProvider.WEATHER_API -> Preferences.weatherProviderApiWeatherApi = key
                 Constants.WeatherProvider.HERE -> Preferences.weatherProviderApiHere = key
                 Constants.WeatherProvider.ACCUWEATHER -> Preferences.weatherProviderApiAccuweather = key
+                Constants.WeatherProvider.METEOBLUE -> Preferences.weatherProviderApiMeteoblue = key
                 else -> {}
             }
             callback.invoke()

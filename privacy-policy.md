@@ -45,6 +45,7 @@ The app only makes network connections when you configure features that require 
    * [AccuWeather](https://www.accuweather.com/en/privacy)
    * [Weather.gov (US National Weather Service)](https://www.weather.gov/privacy)
    * [Yr.no / MET Norway](https://www.yr.no/en/other-conditions/3-97251/privacy-policy)
+   * [meteoblue](https://content.meteoblue.com/en/about-us/legal)
 2. **Custom Location Search**: Searching for a manual weather city uses Android's platform `Geocoder` service. Secondary clock timezones are resolved **100% offline** using the on-device IANA timezone database.
 3. **External Links / Weather Web Fallback**: If you tap the weather widget without a dedicated weather application installed or configured, your browser opens [`https://yandex.ru/pogoda`](https://yandex.ru/legal/confidential/) with `lat` and `lon` query parameters. Tapping event addresses opens your installed maps app (or OpenStreetMap in a browser if no maps app is installed).
 

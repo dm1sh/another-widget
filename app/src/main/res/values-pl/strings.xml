@@ -111,6 +111,7 @@
     <string name="weather_provider_info_weatherapi_title">Ten dostawca pogody potrzebuje \nklucza API do poprawnego działania.</string>
     <string name="weather_provider_info_here_title">Ten dostawca pogody potrzebuje \nklucza API do poprawnego działania.</string>
     <string name="weather_provider_info_accuweather_title">Ten dostawca pogody potrzebuje \nklucza API do poprawnego działania.</string>
+    <string name="weather_provider_info_meteoblue_title">Ten dostawca pogody potrzebuje \nklucza API do poprawnego działania.</string>
     <string name="weather_provider_info_weather_gov_title">Ten dostawcs pogody działa tylko\ndla USA.</string>
     <string name="weather_provider_info_yr_title">Ten dostawca pogody zezwala tylko\nna stopnie Celsjusza.</string>
     <string name="weather_provider_info_open_weather_subtitle">Otwórz stronę dostawcy, stwórz konto i skopiuj domyślny klucz API tutaj.</string>
@@ -118,6 +119,7 @@
     <string name="weather_provider_info_weatherapi_subtitle">Otwórz stronę dostawcy, stwórz konto i skopiuj domyślny klucz API tutaj.</string>
     <string name="weather_provider_info_here_subtitle">Otwórz stronę dostawcy, stwórz konto i skopiuj domyślny klucz API tutaj.</string>
     <string name="weather_provider_info_accuweather_subtitle">Otwórz stronę dostawcy, stwórz konto i skopiuj domyślny klucz API tutaj.</string>
+    <string name="weather_provider_info_meteoblue_subtitle">Otwórz stronę dostawcy, stwórz konto i skopiuj domyślny klucz API tutaj.</string>
     <string name="weather_provider_info_weather_gov_subtitle">\n</string>
     <string name="weather_provider_info_yr_subtitle">\n</string>
     <string name="weather_provider_error_missing_key">Dostawca pogody, którego wybrałeś wymaga klucza API.</string>
