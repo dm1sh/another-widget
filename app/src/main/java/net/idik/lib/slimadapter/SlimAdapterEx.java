@@ -160,8 +160,8 @@ public class SlimAdapterEx extends SlimAdapter {
     }
 
     @Override
-    public <T> SlimAdapterEx register(int layoutRes, SlimInjector<T> slimInjector) {
-        return (SlimAdapterEx) super.register(layoutRes, slimInjector);
+    public <T> SlimAdapterEx register(Class<T> dataClass, int layoutRes, SlimInjector<T> slimInjector) {
+        return (SlimAdapterEx) super.register(dataClass, layoutRes, slimInjector);
     }
 
     @Override

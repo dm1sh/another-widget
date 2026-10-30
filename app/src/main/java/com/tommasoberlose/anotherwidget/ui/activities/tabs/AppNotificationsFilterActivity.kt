@@ -18,6 +18,7 @@ import com.tommasoberlose.anotherwidget.helpers.ActiveNotificationsHelper
 import com.tommasoberlose.anotherwidget.ui.viewmodels.tabs.AppNotificationsViewModel
 import kotlinx.coroutines.*
 import net.idik.lib.slimadapter.SlimAdapter
+import net.idik.lib.slimadapter.register
 
 
 class AppNotificationsFilterActivity : AppCompatActivity() {

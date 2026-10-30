@@ -18,6 +18,7 @@ import com.tommasoberlose.anotherwidget.helpers.MediaPlayerHelper
 import com.tommasoberlose.anotherwidget.ui.viewmodels.tabs.MusicPlayersFilterViewModel
 import kotlinx.coroutines.*
 import net.idik.lib.slimadapter.SlimAdapter
+import net.idik.lib.slimadapter.register
 
 
 class MusicPlayersFilterActivity : AppCompatActivity() {

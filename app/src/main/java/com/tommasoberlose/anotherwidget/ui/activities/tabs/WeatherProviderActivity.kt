@@ -21,6 +21,7 @@ import com.tommasoberlose.anotherwidget.ui.fragments.MainFragment
 import com.tommasoberlose.anotherwidget.ui.viewmodels.tabs.WeatherProviderViewModel
 import kotlinx.coroutines.launch
 import net.idik.lib.slimadapter.SlimAdapter
+import net.idik.lib.slimadapter.register
 import org.greenrobot.eventbus.EventBus
 import org.greenrobot.eventbus.Subscribe
 import org.greenrobot.eventbus.ThreadMode

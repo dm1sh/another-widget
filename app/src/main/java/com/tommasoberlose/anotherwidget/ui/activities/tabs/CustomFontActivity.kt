@@ -31,6 +31,7 @@ import com.tommasoberlose.anotherwidget.ui.viewmodels.tabs.CustomFontViewModel
 import kotlinx.coroutines.*
 import net.idik.lib.slimadapter.SlimAdapter
 import net.idik.lib.slimadapter.diff.DefaultDiffCallback
+import net.idik.lib.slimadapter.register
 
 
 class CustomFontActivity : AppCompatActivity() {

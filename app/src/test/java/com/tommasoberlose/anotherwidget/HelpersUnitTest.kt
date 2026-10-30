@@ -6,6 +6,12 @@ import com.tommasoberlose.anotherwidget.helpers.LocationCandidates
 import com.tommasoberlose.anotherwidget.helpers.LocationChangePolicy
 import com.tommasoberlose.anotherwidget.helpers.LocationSample
 import com.tommasoberlose.anotherwidget.ui.viewmodels.tabs.TimeZoneSelectorViewModel
+import me.everything.providers.android.calendar.Calendar
+import me.everything.providers.android.calendar.Event as ProviderEvent
+import me.everything.providers.core.Entity
+import net.idik.lib.slimadapter.SlimAdapter
+import net.idik.lib.slimadapter.SlimAdapterEx
+import net.idik.lib.slimadapter.register
 import org.junit.Assert.*
 import org.junit.Test
 import java.util.Locale
@@ -158,5 +164,40 @@ class HelpersUnitTest {
         assertEquals(Constants.NextAlarmWindow.SIX_HOURS, Constants.NextAlarmWindow.fromInt(360))
         assertEquals(Constants.WeatherProvider.OPEN_WEATHER, Constants.WeatherProvider.fromInt(-99))
         assertEquals(Constants.GlanceNotificationTimer.ONE_MINUTE, Constants.GlanceNotificationTimer.fromInt(99))
+    }
+
+    @Test
+    fun slimAdapter_registersKotlinSamLambdasWithoutReflectionCrash() {
+        val adapter = SlimAdapter.create()
+            .register<Constants.WeatherProvider>(101) { _, _ -> }
+            .register<String>(102) { _, _ -> }
+            .register<Int>(103) { _, _ -> }
+
+        assertTrue(adapter.hasRegisteredCreator(Constants.WeatherProvider.YR.javaClass))
+        assertTrue(adapter.hasRegisteredCreator("provider".javaClass))
+        assertTrue(adapter.hasRegisteredCreator((42 as Any).javaClass))
+        assertTrue(adapter.hasRegisteredCreator(Int::class.java))
+        assertFalse(adapter.hasRegisteredCreator(Double::class.javaObjectType))
+
+        val exAdapter = SlimAdapterEx.create()
+            .register<String>(201) { _, _ -> }
+        assertTrue(exAdapter.hasRegisteredCreator("app".javaClass))
+    }
+
+    @Test
+    fun calendarProviderEntities_exposeMappedColumnsAndSafeFieldAccess() {
+        val calCols = Entity.getColumns(Calendar::class.java).toList()
+        assertTrue(calCols.contains("_id"))
+        assertTrue(calCols.contains("calendar_displayName"))
+
+        val calWriteCols = Entity.getWriteColumns(Calendar::class.java).toList()
+        assertTrue(calWriteCols.contains("calendar_displayName"))
+
+        val ev = ProviderEvent().apply {
+            id = 77L
+            title = "Standup"
+        }
+        assertEquals(77L, Entity.getId(ev))
+        assertEquals("Standup", Entity.getColumnValue("title", ev))
     }
 }

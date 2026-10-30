@@ -44,7 +44,7 @@ public abstract class Entity {
         for (Field field : fields) {
             if (!field.isAnnotationPresent(IgnoreMapping.class)) {
                 FieldMapping contentField = field.getAnnotation(FieldMapping.class);
-                if (contentField.canUpdate()) {
+                if (contentField != null && contentField.canUpdate()) {
                     String columnName = contentField.columnName();
                     columns.add(columnName);
                 }
@@ -71,6 +71,7 @@ public abstract class Entity {
         try {
             Field field = getColumnField(columnName, entity);
             if (field != null) {
+                field.setAccessible(true);
                 return field.get(entity);
             }
         }
@@ -85,7 +86,10 @@ public abstract class Entity {
 
     public static Object getColumnValue(Field field, Entity entity) {
         try {
-            return field.get(entity);
+            if (field != null) {
+                field.setAccessible(true);
+                return field.get(entity);
+            }
         }
         catch (IllegalArgumentException e) {
             e.printStackTrace();
@@ -101,7 +105,7 @@ public abstract class Entity {
         for (Field field : fields) {
             if (!field.isAnnotationPresent(IgnoreMapping.class)) {
                 FieldMapping contentField = field.getAnnotation(FieldMapping.class);
-                if (contentField.columnName().equals(columnName)) {
+                if (contentField != null && contentField.columnName().equals(columnName)) {
                     return field;
                 }
             }

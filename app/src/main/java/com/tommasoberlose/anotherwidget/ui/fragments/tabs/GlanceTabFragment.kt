@@ -44,6 +44,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import net.idik.lib.slimadapter.SlimAdapter
+import net.idik.lib.slimadapter.register
 
 
 class GlanceTabFragment : Fragment() {

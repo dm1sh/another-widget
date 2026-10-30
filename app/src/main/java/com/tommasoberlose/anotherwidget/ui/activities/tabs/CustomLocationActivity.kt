@@ -25,6 +25,7 @@ import com.tommasoberlose.anotherwidget.global.Preferences
 import com.tommasoberlose.anotherwidget.ui.viewmodels.tabs.CustomLocationViewModel
 import kotlinx.coroutines.*
 import net.idik.lib.slimadapter.SlimAdapter
+import net.idik.lib.slimadapter.register
 
 class CustomLocationActivity : AppCompatActivity() {
 

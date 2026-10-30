@@ -27,6 +27,7 @@ import com.warkiz.widget.OnSeekChangeListener
 import com.warkiz.widget.SeekParams
 import kotlinx.coroutines.*
 import net.idik.lib.slimadapter.SlimAdapter
+import net.idik.lib.slimadapter.register
 
 class BottomSheetPicker<T>(
     context: Context,

@@ -24,6 +24,7 @@ import com.tommasoberlose.anotherwidget.ui.viewmodels.tabs.ChooseApplicationView
 import kotlinx.coroutines.*
 import net.idik.lib.slimadapter.SlimAdapter
 import net.idik.lib.slimadapter.SlimAdapterEx
+import net.idik.lib.slimadapter.register
 
 
 class ChooseApplicationActivity : AppCompatActivity() {

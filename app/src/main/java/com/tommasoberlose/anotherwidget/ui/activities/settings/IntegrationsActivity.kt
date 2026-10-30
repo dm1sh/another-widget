@@ -8,6 +8,7 @@ import com.tommasoberlose.anotherwidget.R
 import com.tommasoberlose.anotherwidget.databinding.ActivityIntegrationsBinding
 import com.tommasoberlose.anotherwidget.ui.viewmodels.settings.IntegrationsViewModel
 import net.idik.lib.slimadapter.SlimAdapter
+import net.idik.lib.slimadapter.register
 
 class IntegrationsActivity : AppCompatActivity() {
 

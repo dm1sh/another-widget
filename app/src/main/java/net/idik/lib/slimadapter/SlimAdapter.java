@@ -3,9 +3,9 @@ package net.idik.lib.slimadapter;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
+import android.view.ViewGroup;
 import androidx.recyclerview.widget.DiffUtil;
 import androidx.recyclerview.widget.RecyclerView;
-import android.view.ViewGroup;
 
 import net.idik.lib.slimadapter.diff.DefaultDiffCallback;
 import net.idik.lib.slimadapter.diff.SlimDiffUtil;
@@ -23,7 +23,6 @@ import java.util.Map;
 /**
  * Created by linshuaibin on 10/02/2017.
  */
-
 public class SlimAdapter extends AbstractSlimAdapter {
 
     private static final int WHAT_NOTIFY_DATA_SET_CHANGED = 1;
@@ -40,10 +39,8 @@ public class SlimAdapter extends AbstractSlimAdapter {
 
     public static <T extends SlimAdapter> T create(Class<T> clazz) {
         try {
-            return clazz.newInstance();
-        } catch (InstantiationException e) {
-            e.printStackTrace();
-        } catch (IllegalAccessException e) {
+            return clazz.getDeclaredConstructor().newInstance();
+        } catch (Exception e) {
             e.printStackTrace();
         }
         return null;
@@ -51,17 +48,24 @@ public class SlimAdapter extends AbstractSlimAdapter {
 
     private List<?> data;
 
-    private Handler uiHandler = new Handler(Looper.getMainLooper()) {
-        @Override
-        public void dispatchMessage(Message msg) {
-            switch (msg.what) {
-                case WHAT_NOTIFY_DATA_SET_CHANGED:
-                    notifyDataSetChanged();
-                    break;
-            }
-            super.dispatchMessage(msg);
+    private Handler uiHandler;
+
+    private Handler getUiHandler() {
+        if (uiHandler == null) {
+            uiHandler = new Handler(Looper.getMainLooper()) {
+                @Override
+                public void dispatchMessage(Message msg) {
+                    switch (msg.what) {
+                        case WHAT_NOTIFY_DATA_SET_CHANGED:
+                            notifyDataSetChanged();
+                            break;
+                    }
+                    super.dispatchMessage(msg);
+                }
+            };
         }
-    };
+        return uiHandler;
+    }
 
     public SlimAdapter updateData(List<?> data) {
         if (moreLoader != null) {
@@ -72,8 +76,9 @@ public class SlimAdapter extends AbstractSlimAdapter {
             if (Looper.myLooper() == Looper.getMainLooper()) {
                 notifyDataSetChanged();
             } else {
-                uiHandler.removeMessages(WHAT_NOTIFY_DATA_SET_CHANGED);
-                uiHandler.sendEmptyMessage(WHAT_NOTIFY_DATA_SET_CHANGED);
+                Handler handler = getUiHandler();
+                handler.removeMessages(WHAT_NOTIFY_DATA_SET_CHANGED);
+                handler.sendEmptyMessage(WHAT_NOTIFY_DATA_SET_CHANGED);
             }
         } else {
             DiffUtil.DiffResult diffResult = DiffUtil.calculateDiff(new SlimDiffUtil(this.data, data, diffCallback));
@@ -81,8 +86,9 @@ public class SlimAdapter extends AbstractSlimAdapter {
             if (Looper.myLooper() == Looper.getMainLooper()) {
                 diffResult.dispatchUpdatesTo(this);
             } else {
-                uiHandler.removeMessages(WHAT_NOTIFY_DATA_SET_CHANGED);
-                uiHandler.sendEmptyMessage(WHAT_NOTIFY_DATA_SET_CHANGED);
+                Handler handler = getUiHandler();
+                handler.removeMessages(WHAT_NOTIFY_DATA_SET_CHANGED);
+                handler.sendEmptyMessage(WHAT_NOTIFY_DATA_SET_CHANGED);
             }
         }
         return this;
@@ -129,15 +135,7 @@ public class SlimAdapter extends AbstractSlimAdapter {
             return new SlimExLoadMoreViewHolder(moreLoader.getLoadMoreView());
         }
         Type dataType = dataTypes.get(viewType);
-        IViewHolderCreator creator = creators.get(dataType);
-        if (creator == null) {
-            for (Type t : creators.keySet()) {
-                if (isTypeMatch(t, dataType)) {
-                    creator = creators.get(t);
-                    break;
-                }
-            }
-        }
+        IViewHolderCreator creator = findCreatorForType(dataType);
         if (creator == null) {
             if (defaultCreator == null) {
                 throw new IllegalArgumentException(String.format("Neither the TYPE: %s not The DEFAULT injector found...", dataType));
@@ -145,6 +143,40 @@ public class SlimAdapter extends AbstractSlimAdapter {
             creator = defaultCreator;
         }
         return creator.create(parent);
+    }
+
+    private IViewHolderCreator findCreatorForType(Type dataType) {
+        IViewHolderCreator creator = creators.get(dataType);
+        if (creator == null) {
+            for (Type t : creators.keySet()) {
+                if (isTypeMatch(t, dataType)) {
+                    return creators.get(t);
+                }
+            }
+        }
+        return creator;
+    }
+
+    public boolean hasRegisteredCreator(Class<?> itemClass) {
+        if (itemClass == null) {
+            return false;
+        }
+        return findCreatorForType(boxPrimitiveClass(itemClass)) != null;
+    }
+
+    private static Class<?> boxPrimitiveClass(Class<?> cls) {
+        if (!cls.isPrimitive()) {
+            return cls;
+        }
+        if (cls == boolean.class) return Boolean.class;
+        if (cls == byte.class) return Byte.class;
+        if (cls == char.class) return Character.class;
+        if (cls == short.class) return Short.class;
+        if (cls == int.class) return Integer.class;
+        if (cls == long.class) return Long.class;
+        if (cls == float.class) return Float.class;
+        if (cls == double.class) return Double.class;
+        return cls;
     }
 
     private boolean isTypeMatch(Type type, Type targetType) {
@@ -155,7 +187,7 @@ public class SlimAdapter extends AbstractSlimAdapter {
         } else if (type instanceof ParameterizedType && targetType instanceof ParameterizedType) {
             ParameterizedType parameterizedType = (ParameterizedType) type;
             ParameterizedType parameterizedTargetType = (ParameterizedType) targetType;
-            if (isTypeMatch(parameterizedType.getRawType(), ((ParameterizedType) targetType).getRawType())) {
+            if (isTypeMatch(parameterizedType.getRawType(), parameterizedTargetType.getRawType())) {
                 Type[] types = parameterizedType.getActualTypeArguments();
                 Type[] targetTypes = parameterizedTargetType.getActualTypeArguments();
                 if (types == null || targetTypes == null || types.length != targetTypes.length) {
@@ -192,7 +224,8 @@ public class SlimAdapter extends AbstractSlimAdapter {
         if (dataClass == null) {
             throw new IllegalArgumentException("dataClass == null");
         }
-        creators.put(dataClass, new IViewHolderCreator<T>() {
+        Class<?> normalizedClass = boxPrimitiveClass(dataClass);
+        creators.put(normalizedClass, new IViewHolderCreator<T>() {
             @Override
             public SlimTypeViewHolder<T> create(ViewGroup parent) {
                 return new SlimTypeViewHolder<T>(parent, layoutRes) {
@@ -204,42 +237,6 @@ public class SlimAdapter extends AbstractSlimAdapter {
             }
         });
         return this;
-    }
-
-    public <T> SlimAdapter register(final int layoutRes, final SlimInjector<T> slimInjector) {
-        Type type = getSlimInjectorActualTypeArguments(slimInjector);
-        if (type == null) {
-            throw new IllegalArgumentException();
-        }
-        creators.put(type, new IViewHolderCreator<T>() {
-            @Override
-            public SlimTypeViewHolder<T> create(ViewGroup parent) {
-                return new SlimTypeViewHolder<T>(parent, layoutRes) {
-                    @Override
-                    protected void onBind(T data, IViewInjector injector) {
-                        slimInjector.onInject(data, injector);
-                    }
-                };
-            }
-        });
-        return this;
-    }
-
-    private <T> Type getSlimInjectorActualTypeArguments(SlimInjector<T> slimInjector) {
-        Type[] interfaces = slimInjector.getClass().getGenericInterfaces();
-        for (Type type : interfaces) {
-            if (type instanceof ParameterizedType) {
-                if (((ParameterizedType) type).getRawType().equals(SlimInjector.class)) {
-                    Type actualType = ((ParameterizedType) type).getActualTypeArguments()[0];
-                    if (actualType instanceof Class) {
-                        return actualType;
-                    } else {
-                        throw new IllegalArgumentException("The generic type argument of SlimInjector is NOT support Generic Parameterized Type now, Please using a WRAPPER class install of it directly.");
-                    }
-                }
-            }
-        }
-        return null;
     }
 
     public SlimAdapter attachTo(RecyclerView... recyclerViews) {

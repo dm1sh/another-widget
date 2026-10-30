@@ -18,6 +18,7 @@ import com.tommasoberlose.anotherwidget.utils.openURI
 import com.tommasoberlose.anotherwidget.utils.toast
 import kotlinx.coroutines.*
 import net.idik.lib.slimadapter.SlimAdapter
+import net.idik.lib.slimadapter.register
 import java.lang.Exception
 import java.text.SimpleDateFormat
 import java.util.*
