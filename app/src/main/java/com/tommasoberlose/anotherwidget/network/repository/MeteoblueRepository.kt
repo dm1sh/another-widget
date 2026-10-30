@@ -17,7 +17,6 @@ class MeteoblueRepository {
         .baseUrl(BASE_URL_METEOBLUE)
         .addConverterFactory(GsonConverterFactory.create())
         .addCallAdapterFactory(NetworkResponseAdapterFactory())
-        .client(RepositoryHelper.getOkHttpClient())
         .build()
         .create(ApiServices.MeteoblueService::class.java)
 
