@@ -19,6 +19,7 @@ import com.tommasoberlose.anotherwidget.global.Preferences
 import com.tommasoberlose.anotherwidget.helpers.WeatherHelper
 import com.tommasoberlose.anotherwidget.ui.fragments.MainFragment
 import com.tommasoberlose.anotherwidget.ui.viewmodels.tabs.WeatherProviderViewModel
+import com.tommasoberlose.anotherwidget.utils.applyCompactInsets
 import kotlinx.coroutines.launch
 import net.idik.lib.slimadapter.SlimAdapter
 import net.idik.lib.slimadapter.register
@@ -31,6 +32,7 @@ class WeatherProviderActivity : AppCompatActivity() {
     private lateinit var adapter: SlimAdapter
     private lateinit var viewModel: WeatherProviderViewModel
     private lateinit var binding: ActivityWeatherProviderBinding
+    private var statusSnackbar: Snackbar? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -156,7 +158,12 @@ class WeatherProviderActivity : AppCompatActivity() {
     fun onMessageEvent(@Suppress("UNUSED_PARAMETER") ignore: MainFragment.UpdateUiMessageEvent?) {
         binding.loader.isVisible = Preferences.weatherProviderError == "-"
         if (Preferences.weatherProviderError == "" && Preferences.weatherProviderLocationError == "") {
-            Snackbar.make(binding.listView, getString(R.string.settings_weather_provider_api_key_subtitle_all_set), Snackbar.LENGTH_LONG).show()
+            statusSnackbar?.dismiss()
+            statusSnackbar = Snackbar.make(
+                binding.listView,
+                getString(R.string.settings_weather_provider_api_key_subtitle_all_set),
+                Snackbar.LENGTH_LONG
+            ).applyCompactInsets().also { it.show() }
         }
     }
 }

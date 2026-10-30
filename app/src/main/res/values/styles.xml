@@ -12,6 +12,26 @@
         <item name="colorControlHighlight">@color/black_20</item>
         <item  name="android:windowActivityTransitions">true</item>
         <item name="android:windowShowWallpaper">true</item>
+        <item name="snackbarStyle">@style/AnotherWidget.Snackbar</item>
+        <item name="snackbarButtonStyle">@style/AnotherWidget.Snackbar.Button</item>
+        <item name="snackbarTextViewStyle">@style/AnotherWidget.Snackbar.TextView</item>
+    </style>
+
+    <style name="AnotherWidget.Snackbar" parent="@style/Widget.MaterialComponents.Snackbar">
+        <item name="materialThemeOverlay">@style/ThemeOverlay.AnotherWidget.Snackbar</item>
+        <item name="android:fitsSystemWindows">false</item>
+    </style>
+
+    <style name="ThemeOverlay.AnotherWidget.Snackbar" parent="">
+        <item name="android:fitsSystemWindows">false</item>
+    </style>
+
+    <style name="AnotherWidget.Snackbar.Button" parent="@style/Widget.MaterialComponents.Button.TextButton.Snackbar">
+        <item name="android:fitsSystemWindows">false</item>
+    </style>
+
+    <style name="AnotherWidget.Snackbar.TextView" parent="@style/Widget.MaterialComponents.Snackbar.TextView">
+        <item name="android:fitsSystemWindows">false</item>
     </style>
 
     <style name="AppTheme.Main" parent="AppTheme">

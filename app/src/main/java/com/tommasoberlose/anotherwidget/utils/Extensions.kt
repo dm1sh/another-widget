@@ -3,8 +3,12 @@ package com.tommasoberlose.anotherwidget.utils
 import android.animation.*
 import android.content.pm.PackageManager
 import android.view.View
+import android.view.ViewGroup
 import android.view.ViewAnimationUtils
 import android.widget.Toast
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
+import com.google.android.material.snackbar.Snackbar
 import android.app.Activity
 import android.app.WallpaperManager
 import android.content.*
@@ -40,6 +44,33 @@ fun Context.toast(message: String, long: Boolean = false) {
     val toast = Toast.makeText(applicationContext, message, if (long) Toast.LENGTH_LONG else Toast.LENGTH_SHORT)
 //    toast.setGravity(Gravity.CENTER, 0, 0)
     toast.show()
+}
+
+fun View.disableFitsSystemWindowsRecursively() {
+    fitsSystemWindows = false
+    if (this is ViewGroup) {
+        for (i in 0 until childCount) {
+            getChildAt(i).disableFitsSystemWindowsRecursively()
+        }
+    }
+}
+
+/**
+ * Prevents AppTheme's global `android:fitsSystemWindows="true"` from inflating
+ * `SnackbarContentLayout` with status-bar top padding and double navigation-bar bottom padding,
+ * while keeping `BaseTransientBottomBar`'s own bottom-margin window-inset listener intact.
+ */
+fun Snackbar.applyCompactInsets(): Snackbar {
+    view.disableFitsSystemWindowsRecursively()
+    if (view is ViewGroup) {
+        val group = view as ViewGroup
+        for (i in 0 until group.childCount) {
+            ViewCompat.setOnApplyWindowInsetsListener(group.getChildAt(i)) { _, _ ->
+                WindowInsetsCompat.CONSUMED
+            }
+        }
+    }
+    return this
 }
 
 fun Int.toPixel(context: Context): Int = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, this.toFloat(), context.resources.displayMetrics).toInt()
