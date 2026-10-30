@@ -94,41 +94,40 @@ class MainFragment : Fragment() {
             Navigation.findNavController(it).navigate(R.id.action_appMainFragment_to_appSettingsFragment)
         }
 
-        subscribeUi(viewModel)
-
         return binding.root
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        subscribeUi(viewModel)
     }
 
     private fun subscribeUi(viewModel: MainViewModel) {
         viewModel.showWallpaper.observe(viewLifecycleOwner) {
-            if (it) {
+            if (it && requireActivity().hasWallpaperPermission()) {
                 val wallpaper = requireActivity().getCurrentWallpaper()
-                binding.widgetBg.setImageDrawable(if (it) wallpaper else null)
-                if (wallpaper != null) {
+                binding.widgetBg.setImageDrawable(wallpaper)
+                if (wallpaper != null && wallpaper.intrinsicWidth > 0 && wallpaper.intrinsicHeight > 0) {
                     binding.widgetBg.layoutParams =
                         (binding.widgetBg.layoutParams as ViewGroup.MarginLayoutParams).apply {
-
-                            val metrics = DisplayMetrics()
-
-                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-                                val display = requireActivity().display
-                                display?.getRealMetrics(metrics)
+                            val (screenWidth, screenHeight) = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                                val bounds = requireActivity().windowManager.currentWindowMetrics.bounds
+                                bounds.width() to bounds.height()
                             } else {
+                                val metrics = DisplayMetrics()
                                 @Suppress("DEPRECATION")
-                                val display = requireActivity().windowManager.defaultDisplay
-                                @Suppress("DEPRECATION")
-                                display.getMetrics(metrics)
+                                requireActivity().windowManager.defaultDisplay.getMetrics(metrics)
+                                metrics.widthPixels to metrics.heightPixels
                             }
 
                             val dimensions: Pair<Int, Int> =
                                 if (wallpaper.intrinsicWidth >= wallpaper.intrinsicHeight) {
-                                    metrics.heightPixels to (wallpaper.intrinsicWidth) * metrics.heightPixels / (wallpaper.intrinsicHeight)
+                                    screenHeight to (wallpaper.intrinsicWidth * screenHeight / wallpaper.intrinsicHeight)
                                 } else {
-                                    metrics.widthPixels to (wallpaper.intrinsicHeight) * metrics.widthPixels / (wallpaper.intrinsicWidth)
+                                    screenWidth to (wallpaper.intrinsicHeight * screenWidth / wallpaper.intrinsicWidth)
                                 }
 
-                            setMargins(0, (-80).toPixel(requireContext()), 0, 0
-                            )
+                            setMargins(0, (-80).toPixel(requireContext()), 0, 0)
 
                             width = dimensions.first
                             height = dimensions.second

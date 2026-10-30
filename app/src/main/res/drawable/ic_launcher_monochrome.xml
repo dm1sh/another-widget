@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- Left 'A' triangle base & left leg (subtle depth layer for Material You monochrome) -->
+    <path
+        android:fillColor="#00000000"
+        android:pathData="M42,46 L34,61.75 L50,61.75 Z"
+        android:strokeWidth="8.8"
+        android:strokeAlpha="0.72"
+        android:strokeColor="#FFFFFF"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round" />
+    <!-- Middle '/' ribbon -->
+    <path
+        android:fillColor="#00000000"
+        android:pathData="M50,61.75 L58,46"
+        android:strokeWidth="8.8"
+        android:strokeAlpha="0.85"
+        android:strokeColor="#FFFFFF"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round" />
+    <!-- Foreground '\' ribbons & rightmost '/' ribbon forming 'AW' -->
+    <path
+        android:fillColor="#00000000"
+        android:pathData="M42,46 L50,61.75 M58,46 L66,61.75 L74,46"
+        android:strokeWidth="8.8"
+        android:strokeColor="#FFFFFF"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round" />
+</vector>

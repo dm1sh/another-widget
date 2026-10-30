@@ -75,13 +75,4 @@ object ApiServices {
             @Query("lon") lon: String,
         ): NetworkResponse<HashMap<String, Any>, HashMap<String, Any>>
     }
-
-    interface TimeZonesService {
-        @GET("timezoneJSON")
-        suspend fun getTimeZone(
-            @Query("lat") lat: String,
-            @Query("lng") lon: String,
-            @Query("username") username: String = "tommaso.berlose",
-        ): NetworkResponse<HashMap<String, Any>, HashMap<String, Any>>
-    }
 }

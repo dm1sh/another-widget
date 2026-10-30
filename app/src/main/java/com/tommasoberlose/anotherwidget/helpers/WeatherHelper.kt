@@ -34,10 +34,11 @@ object WeatherHelper {
         Preferences.remove(Preferences::weatherTemp)
         Preferences.remove(Preferences::weatherRealTempUnit)
         Preferences.remove(Preferences::weatherIcon)
+        Preferences.weatherCacheTimestamp = 0L
         MainWidget.updateWidget(context)
     }
 
-    fun getProviderName(context: Context, provider: Constants.WeatherProvider = Constants.WeatherProvider.fromInt(Preferences.weatherProvider)!!): String {
+    fun getProviderName(context: Context, provider: Constants.WeatherProvider = Constants.WeatherProvider.fromInt(Preferences.weatherProvider)): String {
         return context.getString(when(provider) {
             Constants.WeatherProvider.OPEN_WEATHER -> R.string.settings_weather_provider_open_weather
             Constants.WeatherProvider.WEATHER_BIT -> R.string.settings_weather_provider_weatherbit
@@ -49,7 +50,7 @@ object WeatherHelper {
         })
     }
 
-    fun getProviderInfoTitle(context: Context, provider: Constants.WeatherProvider? = Constants.WeatherProvider.fromInt(Preferences.weatherProvider)!!): String {
+    fun getProviderInfoTitle(context: Context, provider: Constants.WeatherProvider? = Constants.WeatherProvider.fromInt(Preferences.weatherProvider)): String {
         return context.getString(when(provider) {
             Constants.WeatherProvider.OPEN_WEATHER -> R.string.weather_provider_info_open_weather_title
             Constants.WeatherProvider.WEATHER_BIT -> R.string.weather_provider_info_weatherbit_title
@@ -62,7 +63,7 @@ object WeatherHelper {
         })
     }
 
-    fun getProviderInfoSubtitle(context: Context, provider: Constants.WeatherProvider? = Constants.WeatherProvider.fromInt(Preferences.weatherProvider)!!): String {
+    fun getProviderInfoSubtitle(context: Context, provider: Constants.WeatherProvider? = Constants.WeatherProvider.fromInt(Preferences.weatherProvider)): String {
         return context.getString(when(provider) {
             Constants.WeatherProvider.OPEN_WEATHER -> R.string.weather_provider_info_open_weather_subtitle
             Constants.WeatherProvider.WEATHER_BIT -> R.string.weather_provider_info_weatherbit_subtitle
@@ -75,20 +76,20 @@ object WeatherHelper {
         })
     }
 
-    fun getProviderLink(provider: Constants.WeatherProvider? = Constants.WeatherProvider.fromInt(Preferences.weatherProvider)!!): String {
+    fun getProviderLink(provider: Constants.WeatherProvider? = Constants.WeatherProvider.fromInt(Preferences.weatherProvider)): String {
         return when(provider) {
             Constants.WeatherProvider.OPEN_WEATHER -> "https://home.openweathermap.org/users/sign_in"
             Constants.WeatherProvider.WEATHER_BIT -> "https://www.weatherbit.io/account/login"
             Constants.WeatherProvider.WEATHER_API -> "https://www.weatherapi.com/login.aspx"
             Constants.WeatherProvider.HERE -> "https://developer.here.com/login"
             Constants.WeatherProvider.ACCUWEATHER -> "https://developer.accuweather.com/user/login"
-            Constants.WeatherProvider.WEATHER_GOV -> "http://www.weather.gov/"
+            Constants.WeatherProvider.WEATHER_GOV -> "https://www.weather.gov/"
             Constants.WeatherProvider.YR -> "https://www.yr.no/"
             else -> ""
         }
     }
 
-    fun isKeyRequired(provider: Constants.WeatherProvider? = Constants.WeatherProvider.fromInt(Preferences.weatherProvider)!!): Boolean = when (provider) {
+    fun isKeyRequired(provider: Constants.WeatherProvider? = Constants.WeatherProvider.fromInt(Preferences.weatherProvider)): Boolean = when (provider) {
         Constants.WeatherProvider.OPEN_WEATHER,
         Constants.WeatherProvider.WEATHER_BIT,
         Constants.WeatherProvider.WEATHER_API,
@@ -100,7 +101,7 @@ object WeatherHelper {
         else -> true
     }
 
-    fun getApiKey(provider: Constants.WeatherProvider? = Constants.WeatherProvider.fromInt(Preferences.weatherProvider)!!): String = when (provider) {
+    fun getApiKey(provider: Constants.WeatherProvider? = Constants.WeatherProvider.fromInt(Preferences.weatherProvider)): String = when (provider) {
         Constants.WeatherProvider.OPEN_WEATHER -> Preferences.weatherProviderApiOpen
         Constants.WeatherProvider.WEATHER_BIT -> Preferences.weatherProviderApiWeatherBit
         Constants.WeatherProvider.WEATHER_API -> Preferences.weatherProviderApiWeatherApi

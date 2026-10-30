@@ -98,6 +98,7 @@
                     android:paddingLeft="8dp"
                     android:paddingRight="8dp"
                     android:paddingTop="8dp"
+                    android:visibility="gone"
                     android:gravity="center_vertical">
                     <ImageView
                         android:layout_width="24dp"

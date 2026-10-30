@@ -299,7 +299,7 @@ class AlignedWidget(val context: Context, val rightAligned: Boolean = false, pri
                             }
                         }
                         Constants.GlanceProviderId.GOOGLE_FIT_STEPS -> {
-                            if (Preferences.showDailySteps && Preferences.googleFitSteps > 0) {
+                            if (Preferences.showDailySteps && Preferences.googleFitSteps > 0 && HealthConnectHelper.isAvailable(context)) {
                                 val fitIntent = IntentHelper.getPendingIntent(
                                     context,
                                     widgetID,
@@ -312,15 +312,8 @@ class AlignedWidget(val context: Context, val rightAligned: Boolean = false, pri
                             }
                         }
                         Constants.GlanceProviderId.NOTIFICATIONS -> {
-                            if (Preferences.showNotifications && ActiveNotificationsHelper.showLastNotification()) {
+                            if (Preferences.showNotifications && ActiveNotificationsHelper.showLastNotification(context)) {
                                 try {
-                                    if (Preferences.lastNotificationIcon != 0) {
-                                        val remotePackageContext = context.createPackageContext(
-                                            Preferences.lastNotificationPackage, 0)
-                                        ContextCompat.getDrawable(
-                                            remotePackageContext,
-                                            Preferences.lastNotificationIcon)
-                                    }
                                     val notificationIntent = IntentHelper.getPendingIntent(
                                         context,
                                         widgetID,
@@ -426,6 +419,7 @@ class AlignedWidget(val context: Context, val rightAligned: Boolean = false, pri
     private fun generateWidgetView(typeface: Typeface? = null): LeftAlignedWidgetBinding? {
         try {
             var isWeatherShownAsGlanceProvider = false
+            var showingColoredNotificationIcon = false
             val eventRepository = EventRepository(context)
             val nextEvent = eventRepository.getNextEvent()
             val eventsCount = eventRepository.getEventsCount()
@@ -500,13 +494,13 @@ class AlignedWidget(val context: Context, val rightAligned: Boolean = false, pri
                             context,
                             now.timeInMillis,
                             nextEvent.startDate
-                        ).toLowerCase(Locale.getDefault())
+                        ).lowercase(Locale.getDefault())
                     } else {
                         SettingsStringHelper.getAllDayEventDifferenceText(
                             context,
                             now.timeInMillis,
                             nextEvent.startDate
-                        ).toLowerCase(Locale.getDefault())
+                        ).lowercase(Locale.getDefault())
                     }
                     bindingView.nextEventDifferenceTime.text = diffTime
 
@@ -666,21 +660,20 @@ class AlignedWidget(val context: Context, val rightAligned: Boolean = false, pri
                         Constants.GlanceProviderId.BATTERY_LEVEL_LOW -> {
                             if (Preferences.showBatteryCharging) {
                                 BatteryHelper.updateBatteryInfo(context)
+                                val batteryLevel = BatteryHelper.getBatteryLevel(context)
                                 if (Preferences.isCharging) {
                                     bindingView.subLineIcon.isVisible = false
-                                    val batteryLevel = BatteryHelper.getBatteryLevel(context)
-                                    if (batteryLevel != 100) {
-                                        bindingView.subLineText.text = context.getString(R.string.charging)
+                                    bindingView.subLineText.text = if (batteryLevel < 100) {
+                                        "${context.getString(R.string.charging)} - ${batteryLevel}%"
                                     } else {
-                                        bindingView.subLineText.text =
-                                            context.getString(R.string.charged)
+                                        context.getString(R.string.charged)
                                     }
                                     showSomething = true
                                     break@loop
                                 } else if (Preferences.isBatteryLevelLow) {
                                     bindingView.subLineIcon.isVisible = false
                                     bindingView.subLineText.text =
-                                        context.getString(R.string.battery_low_warning)
+                                        "${context.getString(R.string.battery_low_warning)} - ${batteryLevel}%"
                                     showSomething = true
                                     break@loop
                                 }
@@ -696,7 +689,7 @@ class AlignedWidget(val context: Context, val rightAligned: Boolean = false, pri
                             }
                         }
                         Constants.GlanceProviderId.GOOGLE_FIT_STEPS -> {
-                            if (Preferences.showDailySteps && Preferences.googleFitSteps > 0) {
+                            if (Preferences.showDailySteps && Preferences.googleFitSteps > 0 && HealthConnectHelper.isAvailable(context)) {
                                 bindingView.subLineIcon.isVisible = false
                                 bindingView.subLineText.text =
                                     context.getString(R.string.daily_steps_counter)
@@ -706,13 +699,11 @@ class AlignedWidget(val context: Context, val rightAligned: Boolean = false, pri
                             }
                         }
                         Constants.GlanceProviderId.NOTIFICATIONS -> {
-                            if (Preferences.showNotifications && ActiveNotificationsHelper.showLastNotification()) {
+                            if (Preferences.showNotifications && ActiveNotificationsHelper.showLastNotification(context)) {
                                 try {
-                                    if (Preferences.lastNotificationIcon != 0) {
-                                        val remotePackageContext = context.createPackageContext(
-                                            Preferences.lastNotificationPackage, 0)
-                                        val icon = ContextCompat.getDrawable(remotePackageContext,
-                                            Preferences.lastNotificationIcon)
+                                    val (icon, isColored) = ActiveNotificationsHelper.getLastNotificationIcon(context)
+                                    if (icon != null) {
+                                        showingColoredNotificationIcon = isColored
                                         bindingView.subLineIcon.isVisible = true
                                         bindingView.subLineIcon.setImageDrawable(icon)
                                     } else {
@@ -743,13 +734,13 @@ class AlignedWidget(val context: Context, val rightAligned: Boolean = false, pri
                                             context,
                                             now.timeInMillis,
                                             nextEvent.startDate
-                                        ).toLowerCase(Locale.getDefault())
+                                        ).lowercase(Locale.getDefault())
                                     } else {
                                         SettingsStringHelper.getAllDayEventDifferenceText(
                                             context,
                                             now.timeInMillis,
                                             nextEvent.startDate
-                                        ).toLowerCase(Locale.getDefault())
+                                        ).lowercase(Locale.getDefault())
                                     }
                                 } else "").trimEnd()
                                 bindingView.subLineIcon.isVisible = true
@@ -842,20 +833,24 @@ class AlignedWidget(val context: Context, val rightAligned: Boolean = false, pri
             }
 
             if (!isWeatherShownAsGlanceProvider) {
-                if (Preferences.weatherIconPack != Constants.WeatherIconPack.MINIMAL.rawValue) {
-                    listOf<ImageView>(bindingView.subLineIcon, bindingView.subLineIconShadow)
-                } else {
-                    listOf<ImageView>(
-                        bindingView.subLineIcon,
-                        bindingView.weatherSubLineWeatherIcon,
-                        bindingView.subLineIconShadow
-                    )
-                }.forEach {
+                val secondaryAlpha =
+                    (if (context.isDarkTheme()) Preferences.textSecondaryAlphaDark.toIntValue()
+                        .toFloat() else Preferences.textSecondaryAlpha.toIntValue()
+                        .toFloat()) / 100
+                val tintedIcons = buildList {
+                    if (!showingColoredNotificationIcon) add(bindingView.subLineIcon)
+                    if (Preferences.weatherIconPack == Constants.WeatherIconPack.MINIMAL.rawValue) {
+                        add(bindingView.weatherSubLineWeatherIcon)
+                    }
+                    add(bindingView.subLineIconShadow)
+                }
+                tintedIcons.forEach {
                     it.setColorFilter(ColorHelper.getSecondaryFontColorRgb(context.applicationContext.isDarkTheme()))
-                    it.alpha =
-                        (if (context.isDarkTheme()) Preferences.textSecondaryAlphaDark.toIntValue()
-                            .toFloat() else Preferences.textSecondaryAlpha.toIntValue()
-                            .toFloat()) / 100
+                    it.alpha = secondaryAlpha
+                }
+                if (showingColoredNotificationIcon) {
+                    bindingView.subLineIcon.clearColorFilter()
+                    bindingView.subLineIcon.alpha = secondaryAlpha
                 }
             }
 

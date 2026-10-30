@@ -17,8 +17,8 @@ object Preferences : KotprefModel() {
     var showWeather by booleanPref(key = "PREF_SHOW_WEATHER", default = false)
     var weatherIcon by stringPref(key = "PREF_WEATHER_ICON", default = "")
     var weatherTemp by floatPref(key = "PREF_WEATHER_TEMP", default = 0f)
-    var weatherTempUnit by stringPref(key = "PREF_WEATHER_TEMP_UNIT", default = if (ConfigurationCompat.getLocales(context.resources.configuration)[0].isMetric()) "C" else "F")
-    var weatherRealTempUnit by stringPref(key = "PREF_WEATHER_REAL_TEMP_UNIT", default = if (ConfigurationCompat.getLocales(context.resources.configuration)[0].isMetric()) "C" else "F")
+    var weatherTempUnit by stringPref(key = "PREF_WEATHER_TEMP_UNIT", default = if ((ConfigurationCompat.getLocales(context.resources.configuration)[0] ?: java.util.Locale.getDefault()).isMetric()) "C" else "F")
+    var weatherRealTempUnit by stringPref(key = "PREF_WEATHER_REAL_TEMP_UNIT", default = if ((ConfigurationCompat.getLocales(context.resources.configuration)[0] ?: java.util.Locale.getDefault()).isMetric()) "C" else "F")
     var calendarAllDay by booleanPref(key = "PREF_CALENDAR_ALL_DAY", default = true)
     var calendarFilter by stringPref(key = "PREF_CALENDAR_FILTER", default = "")
 
@@ -40,7 +40,7 @@ object Preferences : KotprefModel() {
     var weatherProviderApiWeatherApi by stringPref(default = "")
     var weatherProviderApiWeatherBit by stringPref(default = "")
     var weatherProviderApiAccuweather by stringPref(default = "")
-    var weatherProvider by intPref(default = if (ConfigurationCompat.getLocales(context.resources.configuration)[0].isMetric()) Constants.WeatherProvider.YR.rawValue else Constants.WeatherProvider.WEATHER_GOV.rawValue)
+    var weatherProvider by intPref(default = if ((ConfigurationCompat.getLocales(context.resources.configuration)[0] ?: java.util.Locale.getDefault()).isMetric()) Constants.WeatherProvider.YR.rawValue else Constants.WeatherProvider.WEATHER_GOV.rawValue)
     var weatherProviderError by stringPref(default = "")
     var weatherProviderLocationError by stringPref(default = "")
     var eventAppName by stringPref(key = "PREF_EVENT_APP_NAME", default = "")
@@ -148,6 +148,26 @@ object Preferences : KotprefModel() {
 
     var showEventsAsGlanceProvider by booleanPref(default = false)
     var showWeatherAsGlanceProvider by booleanPref(default = false)
+    var nextAlarmWindow by intPref(default = Constants.NextAlarmWindow.ALWAYS.rawValue)
+
+    // Greetings stability
+    var greetingPeriod by intPref(default = 0)
+    var greetingText by stringPref(default = "")
+    var greetingLocale by stringPref(default = "")
+
+    // Battery debounce
+    var lastBatteryUpdateMs by longPref(default = 0L)
+    var lastBatteryLevel by intPref(default = -1)
+
+    // Geolocation & Weather cache
+    var autoLocationLabel by stringPref(default = "")
+    var weatherCacheTimestamp by longPref(default = 0L)
+    var weatherCacheLat by stringPref(default = "")
+    var weatherCacheLon by stringPref(default = "")
+    var weatherCacheProvider by intPref(default = -1)
+
+    // Backup & Restore
+    var backupIncludeApiKeys by booleanPref(default = true)
 
     // Integrations
     var installedIntegrations by intPref(default = 0)

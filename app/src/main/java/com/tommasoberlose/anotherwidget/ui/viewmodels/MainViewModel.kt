@@ -90,6 +90,7 @@ class MainViewModel(context: Application) : AndroidViewModel(context) {
     val weatherAppName = Preferences.asLiveData(Preferences::weatherAppName)
 
     val customLocationAdd = Preferences.asLiveData(Preferences::customLocationAdd)
+    val autoLocationLabel = Preferences.asLiveData(Preferences::autoLocationLabel)
 
     val weatherIconPack = Preferences.asLiveData(Preferences::weatherIconPack)
     val weatherProvider = Preferences.asLiveData(Preferences::weatherProvider)
@@ -164,8 +165,10 @@ class MainViewModel(context: Application) : AndroidViewModel(context) {
         addSource(Preferences.asLiveData(Preferences::enabledGlanceProviderOrder)) { value = true }
         addSource(Preferences.asLiveData(Preferences::customNotes)) { value = true }
         addSource(Preferences.asLiveData(Preferences::showNextAlarm)) { value = true }
+        addSource(Preferences.asLiveData(Preferences::nextAlarmWindow)) { value = true }
         addSource(Preferences.asLiveData(Preferences::showBatteryCharging)) { value = true }
         addSource(Preferences.asLiveData(Preferences::showDailySteps)) { value = true }
+        addSource(Preferences.asLiveData(Preferences::googleFitSteps)) { value = true }
         addSource(Preferences.asLiveData(Preferences::showGreetings)) { value = true }
         addSource(Preferences.asLiveData(Preferences::showNotifications)) { value = true }
         addSource(Preferences.asLiveData(Preferences::showMusic)) { value = true }

@@ -66,20 +66,32 @@ class WeatherFragment : Fragment() {
         viewModel = ViewModelProvider(activity as MainActivity).get(MainViewModel::class.java)
         binding = FragmentTabWeatherBinding.inflate(inflater)
 
-        subscribeUi(viewModel)
-
-        binding.lifecycleOwner = this
+        binding.lifecycleOwner = viewLifecycleOwner
         binding.viewModel = viewModel
 
         return binding.root
     }
 
-    override fun onActivityCreated(savedInstanceState: Bundle?) {
-        super.onActivityCreated(savedInstanceState)
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        subscribeUi(viewModel)
         setupListener()
 
         binding.scrollView.viewTreeObserver.addOnScrollChangedListener {
             viewModel.fragmentScrollY.value = binding.scrollView.scrollY
+        }
+    }
+
+    private fun updateLocationLabel() {
+        binding.labelCustomLocation.text = if (Preferences.customLocationAdd == "") {
+            val resolvedCity = Preferences.autoLocationLabel
+            if (resolvedCity.isNotBlank()) {
+                "%s (%s)".format(getString(R.string.custom_location_gps), resolvedCity)
+            } else {
+                getString(R.string.custom_location_gps)
+            }
+        } else {
+            Preferences.customLocationAdd
         }
     }
 
@@ -90,7 +102,7 @@ class WeatherFragment : Fragment() {
 
         viewModel.weatherProvider.observe(viewLifecycleOwner) {
             maintainScrollPosition {
-                binding.labelWeatherProvider.text = WeatherHelper.getProviderName(requireContext(), Constants.WeatherProvider.fromInt(it)!!)
+                binding.labelWeatherProvider.text = WeatherHelper.getProviderName(requireContext(), Constants.WeatherProvider.fromInt(it))
             }
         }
 
@@ -106,11 +118,16 @@ class WeatherFragment : Fragment() {
 
         viewModel.customLocationAdd.observe(viewLifecycleOwner) {
             maintainScrollPosition {
-                binding.labelCustomLocation.text =
-                    if (it == "") getString(R.string.custom_location_gps) else it
+                updateLocationLabel()
             }
             checkWeatherProviderConfig()
             checkLocationPermission()
+        }
+
+        viewModel.autoLocationLabel.observe(viewLifecycleOwner) {
+            maintainScrollPosition {
+                updateLocationLabel()
+            }
         }
 
         viewModel.weatherTempUnit.observe(viewLifecycleOwner) {
@@ -187,7 +204,7 @@ class WeatherFragment : Fragment() {
                 .addOnSelectItemListener { value ->
                     if (value != Preferences.weatherTempUnit) {
                         Preferences.weatherTempUnit = value
-                        WeatherHelper.updateWeather(requireContext())
+                        WeatherHelper.updateWeather(requireContext(), force = true)
                     }
                 }.show()
         }
@@ -215,11 +232,10 @@ class WeatherFragment : Fragment() {
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         if (resultCode == Activity.RESULT_OK) {
             when (requestCode) {
-                Constants.RESULT_CODE_CUSTOM_LOCATION -> {
-                    WeatherHelper.updateWeather(requireContext())
+                Constants.RESULT_CODE_CUSTOM_LOCATION,
+                RequestCode.WEATHER_PROVIDER_REQUEST_CODE.code -> {
+                    WeatherHelper.updateWeather(requireContext(), force = true)
                 }
-                //RequestCode.WEATHER_PROVIDER_REQUEST_CODE.code -> {
-                //}
             }
         }
         super.onActivityResult(requestCode, resultCode, data)
@@ -250,7 +266,7 @@ class WeatherFragment : Fragment() {
                     report?.let {
                         if (report.grantedPermissionResponses.isNotEmpty()) {
                             checkLocationPermission()
-                            WeatherHelper.updateWeather(requireContext())
+                            WeatherHelper.updateWeather(requireContext(), force = true)
                         }
                         else if (!shouldShowRationale && report.isAnyPermissionPermanentlyDenied) {
                             MaterialBottomSheetDialog(

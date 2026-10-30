@@ -9,6 +9,11 @@ object Constants {
     const val CUSTOM_FONT_DOWNLOADED = 2
     const val CUSTOM_FONT_DOWNLOAD_NEW = 3
 
+    const val LOCATION_LAST_KNOWN_MAX_AGE_MS = 30 * 60 * 1000L
+    const val LOCATION_LAST_KNOWN_MAX_ACCURACY_M = 1_500f
+    const val LOCATION_FRESH_MAX_ACCURACY_M = 2_500f
+    const val WEATHER_LOCATION_CHANGE_THRESHOLD_M = 2_000f
+
     enum class ClockBottomMargin(val rawValue: Int) {
         NONE(0),
         SMALL(1),
@@ -42,7 +47,7 @@ object Constants {
         WEATHER("WEATHER");
 
         companion object {
-            private val map = GlanceProviderId.values().associateBy(GlanceProviderId::id)
+            private val map = values().associateBy(GlanceProviderId::id)
             fun from(type: String) = map[type]
         }
     }
@@ -63,8 +68,8 @@ object Constants {
         YR(6);
 
         companion object {
-            private val map = WeatherProvider.values().associateBy(WeatherProvider::rawValue)
-            fun fromInt(type: Int) = map[type]
+            private val map = values().associateBy(WeatherProvider::rawValue)
+            fun fromInt(type: Int): WeatherProvider = map[type] ?: OPEN_WEATHER
         }
     }
 
@@ -78,7 +83,22 @@ object Constants {
 
         companion object {
             private val map = values().associateBy(GlanceNotificationTimer::rawValue)
-            fun fromInt(type: Int) = map[type]
+            fun fromInt(type: Int): GlanceNotificationTimer = map[type] ?: ONE_MINUTE
+        }
+    }
+
+    enum class NextAlarmWindow(val rawValue: Int) {
+        ALWAYS(0),
+        THIRTY_MINUTES(30),
+        ONE_HOUR(60),
+        THREE_HOURS(180),
+        SIX_HOURS(360),
+        TWELVE_HOURS(720),
+        TWENTY_FOUR_HOURS(1440);
+
+        companion object {
+            private val map = values().associateBy(NextAlarmWindow::rawValue)
+            fun fromInt(value: Int): NextAlarmWindow = map[value] ?: ALWAYS
         }
     }
 

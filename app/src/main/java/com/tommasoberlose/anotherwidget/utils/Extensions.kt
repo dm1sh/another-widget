@@ -197,7 +197,8 @@ fun Context.isDarkTheme(): Boolean {
     return Preferences.darkThemePreference == AppCompatDelegate.MODE_NIGHT_YES || Preferences.darkThemePreference == AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM && resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK == Configuration.UI_MODE_NIGHT_YES
 }
 
-fun Activity.isNotificationAccessGranted(): Boolean = Settings.Secure.getString(this.contentResolver,"enabled_notification_listeners").contains(this.packageName)
+fun Activity.isNotificationAccessGranted(): Boolean =
+    Settings.Secure.getString(this.contentResolver, "enabled_notification_listeners")?.contains(this.packageName) == true
 
 fun Float.convertDpToPixel(context: Context): Float {
     val resources: Resources = context.resources
@@ -214,12 +215,28 @@ fun Context.checkGrantedPermission(permission: String): Boolean {
     return ContextCompat.checkSelfPermission(this, permission) == PackageManager.PERMISSION_GRANTED
 }
 
+fun Context.hasWallpaperPermission(): Boolean {
+    return if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
+        checkGrantedPermission(android.Manifest.permission.READ_MEDIA_IMAGES)
+    } else {
+        checkGrantedPermission(android.Manifest.permission.READ_EXTERNAL_STORAGE)
+    }
+}
+
+fun wallpaperPermissionName(): String {
+    return if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
+        android.Manifest.permission.READ_MEDIA_IMAGES
+    } else {
+        android.Manifest.permission.READ_EXTERNAL_STORAGE
+    }
+}
+
 fun android.app.AlarmManager.setExactIfCanSchedule(type: Int, triggerAtMillis: Long, operation: android.app.PendingIntent) {
-    // uncomment the following check after bumping compileSdkVersion/targetSdkVersion to 31
-    //if (android.os.Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.S || canScheduleExactAlarms())
+    if (android.os.Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.S || canScheduleExactAlarms()) {
         setExact(type, triggerAtMillis, operation)
-    //else
-    //    set(type, triggerAtMillis, operation)
+    } else {
+        set(type, triggerAtMillis, operation)
+    }
 }
 
 fun Context.getCurrentWallpaper(): Drawable? = try {
@@ -234,7 +251,7 @@ fun String.getCapWordString(): String {
         var newText = ""
         for (t: String in ar) {
             newText += " "
-            newText += t.substring(0, 1).toUpperCase(Locale.getDefault())
+            newText += t.substring(0, 1).uppercase(Locale.getDefault())
             newText += t.substring(1)
         }
         newText.substring(1)
@@ -243,26 +260,18 @@ fun String.getCapWordString(): String {
     }
 }
 
-fun Context.checkIfFitInstalled(): Boolean {
-    return try {
-        packageManager.getPackageInfo("com.google.android.apps.fitness", PackageManager.GET_ACTIVITIES)
-        true
-    } catch (e: Exception) {
-        false
-    }
-}
-
 fun Intent.isDefaultSet(context: Context): Boolean {
     val pm = context.packageManager
     return try {
-        resolveActivity(pm) != null && resolveActivity(pm).packageName.isNotBlank()
+        val resolved = resolveActivity(pm)
+        resolved != null && resolved.packageName.isNotBlank()
     } catch (ex: java.lang.Exception) {
         false
     }
 }
 
 fun Locale.isMetric(): Boolean {
-    return when (country.toUpperCase(this)) {
+    return when (country.uppercase(this)) {
         "US", "LR", "MM", "GB" -> false
         else -> true
     }

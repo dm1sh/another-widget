@@ -29,15 +29,20 @@ class UpdatesReceiver : BroadcastReceiver() {
                 CalendarHelper.updateEventList(context)
                 MediaPlayerHelper.updatePlayingMediaInfo(context)
                 ActiveNotificationsHelper.clearLastNotification(context)
+                GreetingsHelper.clearCachedGreeting()
                 GreetingsHelper.toggleGreetings(context)
+                BatteryHelper.updateBatteryInfo(context)
+                HealthConnectHelper.updateDailySteps(context)
             }
 
             Intent.ACTION_DATE_CHANGED,
             Actions.ACTION_CALENDAR_UPDATE -> {
                 CalendarHelper.updateEventList(context)
+                HealthConnectHelper.updateDailySteps(context)
             }
 
             Actions.ACTION_TIME_UPDATE -> {
+                BatteryHelper.updateBatteryInfo(context)
                 MainWidget.updateWidget(context)
                 if (intent.hasExtra(EVENT_ID)) {
                     setUpdates(context, intent.getLongExtra(EVENT_ID, -1))
@@ -46,9 +51,17 @@ class UpdatesReceiver : BroadcastReceiver() {
 
             "com.sec.android.widgetapp.APPWIDGET_RESIZE",
             AlarmManager.ACTION_NEXT_ALARM_CLOCK_CHANGED,
-            Actions.ACTION_ALARM_UPDATE,
-            Actions.ACTION_UPDATE_GREETINGS -> {
+            Actions.ACTION_ALARM_UPDATE -> {
                 MainWidget.updateWidget(context)
+            }
+
+            Actions.ACTION_UPDATE_GREETINGS -> {
+                GreetingsHelper.getRandomString(context, forceRefresh = true)
+                MainWidget.updateWidget(context)
+            }
+
+            Actions.ACTION_UPDATE_STEPS -> {
+                HealthConnectHelper.updateDailySteps(context)
             }
 
             Actions.ACTION_CLEAR_NOTIFICATION -> {
@@ -58,6 +71,8 @@ class UpdatesReceiver : BroadcastReceiver() {
             Actions.ACTION_REFRESH -> {
                 CalendarHelper.updateEventList(context)
                 MediaPlayerHelper.updatePlayingMediaInfo(context)
+                BatteryHelper.updateBatteryInfo(context)
+                HealthConnectHelper.updateDailySteps(context)
                 WeatherHelper.updateWeather(context)
             }
         }

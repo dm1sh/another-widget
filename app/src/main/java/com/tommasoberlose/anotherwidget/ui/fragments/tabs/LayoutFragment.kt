@@ -53,17 +53,17 @@ class LayoutFragment : Fragment() {
         viewModel = ViewModelProvider(activity as MainActivity).get(MainViewModel::class.java)
         binding = FragmentTabLayoutBinding.inflate(inflater)
 
-        subscribeUi(viewModel)
-
-        binding.lifecycleOwner = this
+        binding.lifecycleOwner = viewLifecycleOwner
         binding.viewModel = viewModel
         binding.isDarkModeEnabled = requireActivity().isDarkTheme()
 
         return binding.root
     }
 
-    override fun onActivityCreated(savedInstanceState: Bundle?) {
-        super.onActivityCreated(savedInstanceState)
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+
+        subscribeUi(viewModel)
 
         binding.showDividersToggle.setCheckedImmediatelyNoEvent(Preferences.showDividers)
 
@@ -158,7 +158,7 @@ class LayoutFragment : Fragment() {
                     binding.backgroundColorLabel.text = getString(R.string.transparent)
                 } else {
                     binding.backgroundColorLabel.text =
-                        "#%s".format(Integer.toHexString(ColorHelper.getBackgroundColor(requireActivity().isDarkTheme()))).toUpperCase()
+                        "#%s".format(Integer.toHexString(ColorHelper.getBackgroundColor(requireActivity().isDarkTheme()))).uppercase(java.util.Locale.ROOT)
                 }
             }
         }

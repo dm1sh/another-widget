@@ -1,7 +1,6 @@
 package com.tommasoberlose.anotherwidget.ui.fragments.tabs
 
 import android.Manifest
-import android.app.Activity
 import android.app.AlarmManager
 import android.content.BroadcastReceiver
 import android.content.Context
@@ -14,12 +13,12 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.view.animation.AnimationUtils
-import android.view.animation.LayoutAnimationController
 import android.widget.ImageView
+import androidx.activity.result.ActivityResultLauncher
 import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
-import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
+import androidx.health.connect.client.PermissionController
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.ItemTouchHelper
@@ -33,14 +32,13 @@ import com.tommasoberlose.anotherwidget.components.GlanceSettingsDialog
 import com.tommasoberlose.anotherwidget.databinding.FragmentTabGlanceBinding
 import com.tommasoberlose.anotherwidget.global.Constants
 import com.tommasoberlose.anotherwidget.global.Preferences
-import com.tommasoberlose.anotherwidget.helpers.ActiveNotificationsHelper
-import com.tommasoberlose.anotherwidget.helpers.AlarmHelper
-import com.tommasoberlose.anotherwidget.helpers.GlanceProviderHelper
-import com.tommasoberlose.anotherwidget.helpers.MediaPlayerHelper
+import com.tommasoberlose.anotherwidget.helpers.*
 import com.tommasoberlose.anotherwidget.models.GlanceProvider
 import com.tommasoberlose.anotherwidget.ui.activities.MainActivity
 import com.tommasoberlose.anotherwidget.ui.viewmodels.MainViewModel
-import com.tommasoberlose.anotherwidget.utils.*
+import com.tommasoberlose.anotherwidget.ui.widgets.MainWidget
+import com.tommasoberlose.anotherwidget.utils.checkGrantedPermission
+import com.tommasoberlose.anotherwidget.utils.convertDpToPixel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -57,35 +55,71 @@ class GlanceTabFragment : Fragment() {
     private var dialog: GlanceSettingsDialog? = null
     private lateinit var adapter: SlimAdapter
     private lateinit var viewModel: MainViewModel
+    private var hasStepsPermCached: Boolean = false
     private val list: ArrayList<Constants.GlanceProviderId> by lazy {
         GlanceProviderHelper.getGlanceProviders(requireContext())
     }
     private lateinit var binding: FragmentTabGlanceBinding
+    private var healthConnectPermissionLauncher: ActivityResultLauncher<Set<String>>? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enterTransition = MaterialSharedAxis(MaterialSharedAxis.X, true)
         returnTransition = MaterialSharedAxis(MaterialSharedAxis.X, false)
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            try {
+                healthConnectPermissionLauncher = registerForActivityResult(
+                    PermissionController.createRequestPermissionResultContract()
+                ) { granted ->
+                    val hasSteps = granted.contains(HealthConnectHelper.READ_STEPS_PERMISSION)
+                    hasStepsPermCached = hasSteps
+                    Preferences.showDailySteps = hasSteps
+                    if (hasSteps) {
+                        val appCtx = requireContext().applicationContext
+                        lifecycleScope.launch(Dispatchers.IO) {
+                            HealthConnectHelper.syncDailySteps(appCtx)
+                            withContext(Dispatchers.Main) {
+                                MainWidget.updateWidget(appCtx)
+                                dialog?.refreshHealthConnectUi()
+                                if (::adapter.isInitialized) {
+                                    adapter.notifyItemRangeChanged(0, adapter.data?.size ?: 0)
+                                }
+                            }
+                        }
+                    } else {
+                        Preferences.googleFitSteps = -1L
+                        HealthConnectHelper.cancelPeriodicSync(requireContext())
+                        dialog?.refreshHealthConnectUi()
+                        if (::adapter.isInitialized) {
+                            adapter.notifyItemRangeChanged(0, adapter.data?.size ?: 0)
+                        }
+                    }
+                }
+            } catch (_: Throwable) {
+                healthConnectPermissionLauncher = null
+            }
+        }
     }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?,
     ): View {
-
         viewModel = ViewModelProvider(activity as MainActivity).get(MainViewModel::class.java)
         binding = FragmentTabGlanceBinding.inflate(inflater)
 
-        binding.lifecycleOwner = this
+        binding.lifecycleOwner = viewLifecycleOwner
         binding.viewModel = viewModel
 
         return binding.root
     }
 
-    override fun onActivityCreated(savedInstanceState: Bundle?) {
-        super.onActivityCreated(savedInstanceState)
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
 
-        // List
+        refreshStepsPermState()
+
         binding.providersList.hasFixedSize()
         binding.providersList.isNestedScrollingEnabled = false
         val mLayoutManager = LinearLayoutManager(context)
@@ -102,11 +136,21 @@ class GlanceTabFragment : Fragment() {
                     }
                     .clicked(R.id.item) {
                         if (provider == Constants.GlanceProviderId.CUSTOM_INFO) {
-                            CustomNotesDialog(requireContext()){
+                            CustomNotesDialog(requireContext()) {
                                 adapter.notifyItemRangeChanged(0, adapter.data.size)
                             }.show()
                         } else {
-                            dialog = GlanceSettingsDialog(requireActivity(), provider) {
+                            dialog = GlanceSettingsDialog(
+                                requireActivity(),
+                                provider,
+                                requestHealthConnectPermission = {
+                                    try {
+                                        healthConnectPermissionLauncher?.launch(HealthConnectHelper.PERMISSIONS)
+                                    } catch (_: Exception) {
+                                    }
+                                }
+                            ) {
+                                refreshStepsPermState()
                                 adapter.notifyItemRangeChanged(0, adapter.data.size)
                             }
                             dialog?.setOnDismissListener {
@@ -184,6 +228,17 @@ class GlanceTabFragment : Fragment() {
                         injector.visibility(R.id.info_icon, View.VISIBLE)
                         isVisible = Preferences.showBatteryCharging
                     }
+                    Constants.GlanceProviderId.GOOGLE_FIT_STEPS -> {
+                        val active = Preferences.showDailySteps && hasStepsPermCached
+                        val hasError = Preferences.showDailySteps && !hasStepsPermCached
+                        injector.text(
+                            R.id.label,
+                            if (active) getString(R.string.settings_visible) else getString(R.string.settings_not_visible)
+                        )
+                        injector.visibility(R.id.error_icon, if (hasError) View.VISIBLE else View.GONE)
+                        injector.visibility(R.id.info_icon, if (!hasError) View.VISIBLE else View.GONE)
+                        isVisible = active
+                    }
                     Constants.GlanceProviderId.NOTIFICATIONS -> {
                         when {
                             ActiveNotificationsHelper.checkNotificationAccess(requireContext()) -> {
@@ -234,8 +289,7 @@ class GlanceTabFragment : Fragment() {
                         isVisible = Preferences.customNotes != ""
                     }
                     Constants.GlanceProviderId.EVENTS -> {
-                        isVisible =
-                            Preferences.showEventsAsGlanceProvider
+                        isVisible = Preferences.showEventsAsGlanceProvider
                         val hasError = !Preferences.showEvents || !requireContext().checkGrantedPermission(
                             Manifest.permission.READ_CALENDAR
                         )
@@ -255,9 +309,10 @@ class GlanceTabFragment : Fragment() {
                         )
                     }
                     Constants.GlanceProviderId.WEATHER -> {
-                        isVisible =
-                            Preferences.showWeatherAsGlanceProvider
-                        val hasError = !Preferences.showWeather || (Preferences.weatherProviderError != "" && Preferences.weatherProviderError != "-") || Preferences.weatherProviderLocationError != ""
+                        isVisible = Preferences.showWeatherAsGlanceProvider
+                        val hasError = !Preferences.showWeather ||
+                            (Preferences.weatherProviderError != "" && Preferences.weatherProviderError != "-") ||
+                            Preferences.weatherProviderLocationError != ""
                         injector.text(
                             R.id.label,
                             if (isVisible && !hasError) getString(R.string.settings_visible) else getString(
@@ -286,14 +341,14 @@ class GlanceTabFragment : Fragment() {
                 ItemTouchHelper.UP or ItemTouchHelper.DOWN,
                 0
             ) {
-
                 override fun onMove(
                     recyclerView: RecyclerView,
-                    viewHolder: RecyclerView.ViewHolder, target: RecyclerView.ViewHolder,
+                    viewHolder: RecyclerView.ViewHolder,
+                    target: RecyclerView.ViewHolder,
                 ): Boolean {
-                    val fromPos = viewHolder.adapterPosition
-                    val toPos = target.adapterPosition
-                    // move item in `fromPos` to `toPos` in adapter.
+                    val fromPos = viewHolder.bindingAdapterPosition
+                    val toPos = target.bindingAdapterPosition
+                    if (fromPos == RecyclerView.NO_POSITION || toPos == RecyclerView.NO_POSITION) return false
                     adapter.notifyItemMoved(fromPos, toPos)
                     return true
                 }
@@ -314,23 +369,16 @@ class GlanceTabFragment : Fragment() {
                     super.onMoved(recyclerView, viewHolder, fromPos, target, toPos, x, y)
                 }
 
-                override fun isItemViewSwipeEnabled(): Boolean {
-                    return false
-                }
+                override fun isItemViewSwipeEnabled(): Boolean = false
 
                 override fun clearView(
                     recyclerView: RecyclerView,
                     viewHolder: RecyclerView.ViewHolder
                 ) {
                     super.clearView(recyclerView, viewHolder)
-                    GlanceProviderHelper.saveGlanceProviderOrder(
-                        list
-                    )
+                    GlanceProviderHelper.saveGlanceProviderOrder(list)
                     adapter.updateData(list.mapNotNull {
-                        GlanceProviderHelper.getGlanceProviderById(
-                            requireContext(),
-                            it
-                        )
+                        GlanceProviderHelper.getGlanceProviderById(requireContext(), it)
                     })
                 }
 
@@ -343,29 +391,22 @@ class GlanceTabFragment : Fragment() {
                     actionState: Int,
                     isCurrentlyActive: Boolean,
                 ) {
-                    val view = viewHolder.itemView as MaterialCardView
+                    val itemCard = viewHolder.itemView as MaterialCardView
                     if (isCurrentlyActive) {
-                        ViewCompat.setElevation(view, 8f.convertDpToPixel(requireContext()))
-                        view.setCardBackgroundColor(
-                            ContextCompat.getColor(
-                                requireContext(),
-                                R.color.cardBorder
-                            )
+                        ViewCompat.setElevation(itemCard, 8f.convertDpToPixel(requireContext()))
+                        itemCard.setCardBackgroundColor(
+                            ContextCompat.getColor(requireContext(), R.color.cardBorder)
                         )
                     } else {
-                        ViewCompat.setElevation(view, 0f)
-                        view.setCardBackgroundColor(
-                            ContextCompat.getColor(
-                                requireContext(),
-                                R.color.colorPrimary
-                            )
+                        ViewCompat.setElevation(itemCard, 0f)
+                        itemCard.setCardBackgroundColor(
+                            ContextCompat.getColor(requireContext(), R.color.colorPrimary)
                         )
                     }
 
                     val topEdge =
-                        if ((view.top == 0 && dY < 0) || ((view.top + view.height >= recyclerView.height - 32f.convertDpToPixel(
-                                requireContext()
-                            )) && dY > 0)
+                        if ((itemCard.top == 0 && dY < 0) ||
+                            ((itemCard.top + itemCard.height >= recyclerView.height - 32f.convertDpToPixel(requireContext())) && dY > 0)
                         ) 0f else dY
 
                     super.onChildDraw(
@@ -383,30 +424,26 @@ class GlanceTabFragment : Fragment() {
                     viewHolder: RecyclerView.ViewHolder,
                     direction: Int,
                 ) {
-                    // remove from adapter
                 }
-            })
+            }
+        )
 
         mIth.attachToRecyclerView(binding.providersList)
-
-        setupListener()
 
         binding.scrollView.viewTreeObserver.addOnScrollChangedListener {
             viewModel.fragmentScrollY.value = binding.scrollView.scrollY
         }
 
         lifecycleScope.launch(Dispatchers.IO) {
-            delay(500)
-            val l = list.mapNotNull { GlanceProviderHelper.getGlanceProviderById(
-                requireContext(),
-                it
-            ) }
+            delay(300)
+            val l = list.mapNotNull {
+                GlanceProviderHelper.getGlanceProviderById(requireContext(), it)
+            }
             withContext(Dispatchers.Main) {
                 binding.loader.animate().scaleX(0f).scaleY(0f).alpha(0f).start()
                 adapter.updateData(l)
                 val controller =
                     AnimationUtils.loadLayoutAnimation(context, R.anim.layout_animation_fall_down)
-
                 binding.providersList.layoutAnimation = controller
                 adapter.notifyDataSetChanged()
                 binding.providersList.scheduleLayoutAnimation()
@@ -414,56 +451,54 @@ class GlanceTabFragment : Fragment() {
         }
     }
 
-    private fun setupListener() {
-    }
-
-    private val nextAlarmChangeBroadcastReceiver = object : BroadcastReceiver() {
-        override fun onReceive(context: Context?, intent: Intent?) {
-            adapter.notifyItemRangeChanged(0, adapter.data.size)
-        }
-    }
-
-    override fun onStart() {
-        super.onStart()
-        requireActivity().registerReceiver(
-            nextAlarmChangeBroadcastReceiver,
-            IntentFilter(AlarmManager.ACTION_NEXT_ALARM_CLOCK_CHANGED)
-        )
-        if (dialog != null) {
-            dialog?.show()
-        }
-    }
-
-    override fun onStop() {
-        requireActivity().unregisterReceiver(nextAlarmChangeBroadcastReceiver)
-        super.onStop()
-    }
-
-    override fun onActivityResult(
-        requestCode: Int,
-        resultCode: Int,
-        data: Intent?,
-    ) {
-        when (requestCode) {
-            1 -> {
-                if (resultCode == Activity.RESULT_OK) {
-                    adapter.notifyItemRangeChanged(0, adapter.data.size)
-                } else {
-                    Preferences.showDailySteps = false
-                }
-
-                if (dialog != null) {
-                    dialog?.show()
+    private fun refreshStepsPermState() {
+        val ctx = context?.applicationContext ?: return
+        lifecycleScope.launch(Dispatchers.IO) {
+            val granted = HealthConnectHelper.hasStepsPermission(ctx)
+            withContext(Dispatchers.Main) {
+                if (hasStepsPermCached != granted) {
+                    hasStepsPermCached = granted
+                    if (::adapter.isInitialized) {
+                        adapter.notifyItemRangeChanged(0, adapter.data?.size ?: 0)
+                    }
                 }
             }
         }
     }
 
+    private val nextAlarmChangeBroadcastReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context?, intent: Intent?) {
+            if (::adapter.isInitialized) {
+                adapter.notifyItemRangeChanged(0, adapter.data?.size ?: 0)
+            }
+        }
+    }
+
+    override fun onStart() {
+        super.onStart()
+        ContextCompat.registerReceiver(
+            requireActivity(),
+            nextAlarmChangeBroadcastReceiver,
+            IntentFilter(AlarmManager.ACTION_NEXT_ALARM_CLOCK_CHANGED),
+            ContextCompat.RECEIVER_EXPORTED
+        )
+        dialog?.show()
+    }
+
+    override fun onStop() {
+        try {
+            requireActivity().unregisterReceiver(nextAlarmChangeBroadcastReceiver)
+        } catch (_: Exception) {
+        }
+        super.onStop()
+    }
+
     override fun onResume() {
         super.onResume()
-        adapter.notifyItemRangeChanged(0, adapter.data?.size ?: 0)
-        if (dialog != null) {
-            dialog?.show()
+        refreshStepsPermState()
+        if (::adapter.isInitialized) {
+            adapter.notifyItemRangeChanged(0, adapter.data?.size ?: 0)
         }
+        dialog?.show()
     }
 }

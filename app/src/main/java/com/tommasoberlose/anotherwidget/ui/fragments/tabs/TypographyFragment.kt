@@ -61,17 +61,17 @@ class TypographyFragment : Fragment() {
         viewModel = ViewModelProvider(activity as MainActivity).get(MainViewModel::class.java)
         binding = FragmentTabTypographyBinding.inflate(inflater)
 
-        subscribeUi(viewModel)
-
-        binding.lifecycleOwner = this
+        binding.lifecycleOwner = viewLifecycleOwner
         binding.viewModel = viewModel
         binding.isDarkModeEnabled = activity?.isDarkTheme() == true
 
         return binding.root
     }
 
-    override fun onActivityCreated(savedInstanceState: Bundle?) {
-        super.onActivityCreated(savedInstanceState)
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+
+        subscribeUi(viewModel)
 
         setupListener()
         lifecycleScope.launch(Dispatchers.IO) {
@@ -110,7 +110,7 @@ class TypographyFragment : Fragment() {
                     binding.fontColorLabel.text = getString(R.string.transparent)
                 } else {
                     binding.fontColorLabel.text =
-                        "#%s".format(Integer.toHexString(ColorHelper.getFontColor(requireActivity().isDarkTheme()))).toUpperCase()
+                        "#%s".format(Integer.toHexString(ColorHelper.getFontColor(requireActivity().isDarkTheme()))).uppercase(Locale.ROOT)
                 }
             }
         }
@@ -121,7 +121,7 @@ class TypographyFragment : Fragment() {
                     binding.secondaryFontColorLabel.text = getString(R.string.transparent)
                 } else {
                     binding.secondaryFontColorLabel.text =
-                        "#%s".format(Integer.toHexString(ColorHelper.getSecondaryFontColor(requireActivity().isDarkTheme()))).toUpperCase()
+                        "#%s".format(Integer.toHexString(ColorHelper.getSecondaryFontColor(requireActivity().isDarkTheme()))).uppercase(Locale.ROOT)
                 }
             }
         }

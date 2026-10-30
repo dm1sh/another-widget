@@ -25,6 +25,8 @@ import com.tommasoberlose.anotherwidget.ui.activities.tabs.WeatherProviderActivi
 import com.tommasoberlose.anotherwidget.ui.viewmodels.MainViewModel
 import com.tommasoberlose.anotherwidget.ui.widgets.MainWidget
 import com.tommasoberlose.anotherwidget.utils.checkGrantedPermission
+import com.tommasoberlose.anotherwidget.utils.hasWallpaperPermission
+import com.tommasoberlose.anotherwidget.utils.wallpaperPermissionName
 
 class MainActivity : AppCompatActivity(), SharedPreferences.OnSharedPreferenceChangeListener {
 
@@ -52,7 +54,7 @@ class MainActivity : AppCompatActivity(), SharedPreferences.OnSharedPreferenceCh
         binding = ActivityMainBinding.inflate(layoutInflater)
 
         controlExtras(intent)
-        if (Preferences.showWallpaper) {
+        if (Preferences.showWallpaper && !hasWallpaperPermission()) {
             requirePermission()
         }
 
@@ -76,12 +78,9 @@ class MainActivity : AppCompatActivity(), SharedPreferences.OnSharedPreferenceCh
         }
     }
 
-    override fun onNewIntent(intent: Intent?) {
+    override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
-
-        if (intent != null) {
-            controlExtras(intent)
-        }
+        controlExtras(intent)
     }
 
     private fun controlExtras(intent: Intent) {
@@ -115,7 +114,7 @@ class MainActivity : AppCompatActivity(), SharedPreferences.OnSharedPreferenceCh
     private fun requirePermission() {
         Dexter.withContext(this)
             .withPermissions(
-                Manifest.permission.READ_EXTERNAL_STORAGE
+                wallpaperPermissionName()
             ).withListener(object : MultiplePermissionsListener {
                 override fun onPermissionsChecked(report: MultiplePermissionsReport?) {
                     report?.let {

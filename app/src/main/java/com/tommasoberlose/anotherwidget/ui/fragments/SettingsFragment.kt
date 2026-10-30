@@ -1,6 +1,5 @@
 package com.tommasoberlose.anotherwidget.ui.fragments
 
-import android.Manifest
 import android.content.Intent
 import android.os.Build
 import android.os.Bundle
@@ -8,13 +7,10 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.appcompat.app.AppCompatDelegate
-import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.Navigation
-import androidx.transition.TransitionInflater
 import com.google.android.material.transition.MaterialSharedAxis
 import com.karumi.dexter.Dexter
 import com.karumi.dexter.MultiplePermissionsReport
@@ -26,18 +22,16 @@ import com.tommasoberlose.anotherwidget.R
 import com.tommasoberlose.anotherwidget.components.BottomSheetMenu
 import com.tommasoberlose.anotherwidget.databinding.FragmentAppSettingsBinding
 import com.tommasoberlose.anotherwidget.global.Preferences
-import com.tommasoberlose.anotherwidget.helpers.ActiveNotificationsHelper
-import com.tommasoberlose.anotherwidget.helpers.CalendarHelper
-import com.tommasoberlose.anotherwidget.helpers.MediaPlayerHelper
-import com.tommasoberlose.anotherwidget.helpers.WeatherHelper
-import com.tommasoberlose.anotherwidget.ui.activities.settings.IntegrationsActivity
+import com.tommasoberlose.anotherwidget.helpers.*
 import com.tommasoberlose.anotherwidget.ui.activities.MainActivity
+import com.tommasoberlose.anotherwidget.ui.activities.settings.BackupRestoreActivity
+import com.tommasoberlose.anotherwidget.ui.activities.settings.IntegrationsActivity
 import com.tommasoberlose.anotherwidget.ui.viewmodels.MainViewModel
-import com.tommasoberlose.anotherwidget.utils.checkGrantedPermission
-import com.tommasoberlose.anotherwidget.utils.ignoreExceptions
+import com.tommasoberlose.anotherwidget.ui.widgets.MainWidget
+import com.tommasoberlose.anotherwidget.utils.hasWallpaperPermission
 import com.tommasoberlose.anotherwidget.utils.openURI
 import com.tommasoberlose.anotherwidget.utils.setOnSingleClickListener
-import kotlinx.coroutines.Dispatchers
+import com.tommasoberlose.anotherwidget.utils.wallpaperPermissionName
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
@@ -53,7 +47,6 @@ class SettingsFragment : Fragment() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-//        sharedElementEnterTransition = TransitionInflater.from(context).inflateTransition(android.R.transition.move)
         enterTransition = MaterialSharedAxis(MaterialSharedAxis.Y, true)
         returnTransition = MaterialSharedAxis(MaterialSharedAxis.Y, false)
     }
@@ -62,27 +55,30 @@ class SettingsFragment : Fragment() {
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?,
     ): View {
-
         viewModel = ViewModelProvider(activity as MainActivity).get(MainViewModel::class.java)
         binding = FragmentAppSettingsBinding.inflate(inflater)
 
-        binding.lifecycleOwner = this
+        binding.lifecycleOwner = viewLifecycleOwner
         binding.viewModel = viewModel
-
-        subscribeUi(viewModel)
 
         return binding.root
     }
 
-    override fun onActivityCreated(savedInstanceState: Bundle?) {
-        super.onActivityCreated(savedInstanceState)
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+
+        subscribeUi(viewModel)
 
         binding.actionBack.setOnSingleClickListener {
             Navigation.findNavController(it).popBackStack()
         }
 
         binding.showWidgetPreviewToggle.setCheckedImmediatelyNoEvent(Preferences.showPreview)
-        binding.showWallpaperToggle.setCheckedImmediatelyNoEvent(Preferences.showWallpaper)
+        binding.showWallpaperToggle.setCheckedImmediatelyNoEvent(
+            Preferences.showWallpaper && requireActivity().hasWallpaperPermission()
+        )
+        binding.appLanguageLabel.text =
+            LanguageHelper.getDisplayLabel(requireContext(), LanguageHelper.getCurrentLanguageTag())
 
         setupListener()
 
@@ -111,8 +107,7 @@ class SettingsFragment : Fragment() {
 
         viewModel.installedIntegrations.observe(viewLifecycleOwner) {
             binding.integrationsCountLabel.text =
-                getString(R.string.label_count_installed_integrations).format(
-                    it)
+                getString(R.string.label_count_installed_integrations).format(it)
         }
 
         viewModel.showPreview.observe(viewLifecycleOwner) {
@@ -125,9 +120,11 @@ class SettingsFragment : Fragment() {
         viewModel.showWallpaper.observe(viewLifecycleOwner) {
             maintainScrollPosition {
                 binding.showWallpaperLabel.text =
-                    if (it && requireActivity().checkGrantedPermission(Manifest.permission.READ_EXTERNAL_STORAGE)) getString(
-                        R.string.settings_visible
-                    ) else getString(R.string.settings_not_visible)
+                    if (it && requireActivity().hasWallpaperPermission()) {
+                        getString(R.string.settings_visible)
+                    } else {
+                        getString(R.string.settings_not_visible)
+                    }
             }
         }
     }
@@ -149,7 +146,7 @@ class SettingsFragment : Fragment() {
             if (isChecked) {
                 requirePermission()
             } else {
-                Preferences.showWallpaper = isChecked
+                Preferences.showWallpaper = false
             }
         }
 
@@ -159,8 +156,10 @@ class SettingsFragment : Fragment() {
 
         binding.actionChangeTheme.setOnClickListener {
             maintainScrollPosition {
-                BottomSheetMenu<Int>(requireContext(),
-                    header = getString(R.string.settings_theme_title))
+                BottomSheetMenu<Int>(
+                    requireContext(),
+                    header = getString(R.string.settings_theme_title)
+                )
                     .setSelectedValue(Preferences.darkThemePreference)
                     .addItem(
                         getString(R.string.settings_subtitle_dark_theme_light),
@@ -172,12 +171,43 @@ class SettingsFragment : Fragment() {
                     )
                     .addItem(
                         getString(R.string.settings_subtitle_dark_theme_default),
-                        if (Build.VERSION.SDK_INT > Build.VERSION_CODES.P) AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM else AppCompatDelegate.MODE_NIGHT_AUTO_BATTERY
+                        if (Build.VERSION.SDK_INT > Build.VERSION_CODES.P) {
+                            AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM
+                        } else {
+                            AppCompatDelegate.MODE_NIGHT_AUTO_BATTERY
+                        }
                     )
                     .addOnSelectItemListener { value ->
                         Preferences.darkThemePreference = value
                     }.show()
             }
+        }
+
+        binding.actionAppLanguage.setOnClickListener {
+            val currentTag = LanguageHelper.getCurrentLanguageTag()
+            val menu = BottomSheetMenu<String>(
+                requireContext(),
+                header = getString(R.string.settings_language_title)
+            ).setSelectedValue(currentTag)
+
+            menu.addItem(
+                LanguageHelper.getDisplayLabel(requireContext(), LanguageHelper.SYSTEM_DEFAULT_TAG),
+                LanguageHelper.SYSTEM_DEFAULT_TAG
+            )
+            LanguageHelper.SUPPORTED_LANGUAGE_TAGS.forEach { tag ->
+                menu.addItem(LanguageHelper.getDisplayLabel(requireContext(), tag), tag)
+            }
+            menu.addOnSelectItemListener { selectedTag ->
+                if (selectedTag != currentTag) {
+                    GreetingsHelper.clearCachedGreeting()
+                    LanguageHelper.setAppLanguage(selectedTag)
+                    MainWidget.updateWidget(requireContext())
+                }
+            }.show()
+        }
+
+        binding.actionBackupRestore.setOnClickListener {
+            startActivity(Intent(requireContext(), BackupRestoreActivity::class.java))
         }
 
         binding.actionTranslate.setOnClickListener {
@@ -202,9 +232,11 @@ class SettingsFragment : Fragment() {
                 .rotation((binding.actionRefreshIcon.rotation - binding.actionRefreshIcon.rotation % 360f) + 360f)
                 .withEndAction {
                     try {
-                        WeatherHelper.updateWeather(requireContext())
+                        WeatherHelper.updateWeather(requireContext(), force = true)
                         CalendarHelper.updateEventList(requireContext())
                         MediaPlayerHelper.updatePlayingMediaInfo(requireContext())
+                        BatteryHelper.updateBatteryInfo(requireContext())
+                        HealthConnectHelper.updateDailySteps(requireContext())
                         ActiveNotificationsHelper.clearLastNotification(requireContext())
                     } catch (ex: Exception) {
                         ex.printStackTrace()
@@ -225,20 +257,31 @@ class SettingsFragment : Fragment() {
 
     override fun onResume() {
         super.onResume()
-        binding.showWallpaperToggle.setCheckedNoEvent(Preferences.showWallpaper && requireActivity().checkGrantedPermission(Manifest.permission.READ_EXTERNAL_STORAGE))
+        val hasPerm = requireActivity().hasWallpaperPermission()
+        binding.showWallpaperToggle.setCheckedNoEvent(Preferences.showWallpaper && hasPerm)
+        binding.showWallpaperLabel.text =
+            if (Preferences.showWallpaper && hasPerm) {
+                getString(R.string.settings_visible)
+            } else {
+                getString(R.string.settings_not_visible)
+            }
+        binding.appLanguageLabel.text =
+            LanguageHelper.getDisplayLabel(requireContext(), LanguageHelper.getCurrentLanguageTag())
     }
 
     private fun requirePermission() {
         Dexter.withContext(requireContext())
             .withPermissions(
-                Manifest.permission.READ_EXTERNAL_STORAGE
+                wallpaperPermissionName()
             ).withListener(object : MultiplePermissionsListener {
                 override fun onPermissionsChecked(report: MultiplePermissionsReport?) {
                     report?.let {
                         if (report.areAllPermissionsGranted()) {
                             Preferences.showWallpaper = true
+                            binding.showWallpaperLabel.text = getString(R.string.settings_visible)
                         } else {
                             binding.showWallpaperToggle.setCheckedNoEvent(false)
+                            binding.showWallpaperLabel.text = getString(R.string.settings_not_visible)
                         }
                     }
                 }
@@ -247,8 +290,6 @@ class SettingsFragment : Fragment() {
                     permissions: MutableList<PermissionRequest>?,
                     token: PermissionToken?,
                 ) {
-                    // Remember to invoke this method when the custom rationale is closed
-                    // or just by default if you don't want to use any custom rationale.
                     token?.continuePermissionRequest()
                 }
             })

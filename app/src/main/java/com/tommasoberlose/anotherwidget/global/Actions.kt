@@ -12,6 +12,7 @@ object Actions {
     const val ACTION_GO_TO_PREVIOUS_EVENT = "dm1sh.anotherwidget.action.GO_TO_PREVIOUS_EVENT"
     const val ACTION_CLEAR_NOTIFICATION = "dm1sh.anotherwidget.action.CLEAR_NOTIFICATION"
     const val ACTION_UPDATE_GREETINGS = "dm1sh.anotherwidget.action.UPDATE_GREETINGS"
+    const val ACTION_UPDATE_STEPS = "dm1sh.anotherwidget.action.UPDATE_STEPS"
 
     const val ACTION_REFRESH = "dm1sh.anotherwidget.action.REFRESH"
 }

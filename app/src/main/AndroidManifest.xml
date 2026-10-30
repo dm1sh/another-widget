@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
-    package="com.tommasoberlose.anotherwidget">
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <uses-sdk tools:overrideLibrary="androidx.health.connect.client" />
 
     <uses-permission android:name="android.permission.READ_CALENDAR" />
     <uses-permission android:name="android.permission.INTERNET" />
@@ -9,11 +10,9 @@
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION" />
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
-    <uses-permission android:name="com.android.vending.BILLING" />
-    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
-    <uses-permission android:name="android.permission.ACTIVITY_RECOGNITION" />
-    <uses-permission android:name="android.gms.permission.ACTIVITY_RECOGNITION"/>
-    <uses-permission android:name="com.google.android.gms.permission.ACTIVITY_RECOGNITION" />
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" android:maxSdkVersion="32" />
+    <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
+    <uses-permission android:name="android.permission.health.READ_STEPS" />
     <uses-permission android:name="com.android.alarm.permission.SET_ALARM" />
     <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
 
@@ -21,10 +20,11 @@
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
+        android:localeConfig="@xml/locale_config"
         android:name=".AWApplication"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
-        android:usesCleartextTraffic="true"
+        android:usesCleartextTraffic="false"
         android:theme="@style/AppTheme"
         tools:ignore="LockedOrientationActivity">
         <activity android:name=".ui.activities.SplashActivity" android:exported="true" android:theme="@style/AppTheme.Main" android:screenOrientation="portrait">
@@ -40,10 +40,38 @@
         <activity android:name=".ui.activities.tabs.WeatherProviderActivity" android:screenOrientation="portrait" />
         <activity android:name=".ui.activities.tabs.CustomDateActivity" android:screenOrientation="portrait" />
         <activity android:name=".ui.activities.settings.IntegrationsActivity" android:screenOrientation="portrait" />
+        <activity android:name=".ui.activities.settings.BackupRestoreActivity" android:screenOrientation="portrait" />
+        <activity
+            android:name=".ui.activities.settings.PrivacyPolicyActivity"
+            android:exported="true"
+            android:screenOrientation="portrait">
+            <intent-filter>
+                <action android:name="androidx.health.ACTION_SHOW_PERMISSIONS_RATIONALE" />
+            </intent-filter>
+        </activity>
+        <activity-alias
+            android:name="ViewPermissionUsageActivity"
+            android:exported="true"
+            android:targetActivity=".ui.activities.settings.PrivacyPolicyActivity"
+            android:permission="android.permission.START_VIEW_PERMISSION_USAGE">
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW_PERMISSION_USAGE" />
+                <category android:name="android.intent.category.HEALTH_PERMISSIONS" />
+            </intent-filter>
+        </activity-alias>
         <activity android:name=".ui.activities.tabs.MusicPlayersFilterActivity" android:screenOrientation="portrait" />
         <activity android:name=".ui.activities.tabs.AppNotificationsFilterActivity" android:screenOrientation="portrait" />
         <activity android:name=".ui.activities.tabs.MediaInfoFormatActivity" android:screenOrientation="portrait" />
         <activity android:name=".ui.activities.tabs.TimeZoneSelectorActivity" android:screenOrientation="portrait" />
+
+        <service
+            android:name="androidx.appcompat.app.AppLocalesMetadataHolderService"
+            android:enabled="false"
+            android:exported="false">
+            <meta-data
+                android:name="autoStoreLocales"
+                android:value="true" />
+        </service>
 
         <receiver android:name=".ui.widgets.MainWidget" android:exported="true">
             <intent-filter>
@@ -76,6 +104,11 @@
                 <action android:name="android.intent.action.BOOT_COMPLETED" />
                 <action android:name="dm1sh.anotherwidget.action.CALENDAR_UPDATE" />
                 <action android:name="dm1sh.anotherwidget.action.TIME_UPDATE" />
+                <action android:name="dm1sh.anotherwidget.action.ALARM_UPDATE" />
+                <action android:name="dm1sh.anotherwidget.action.UPDATE_GREETINGS" />
+                <action android:name="dm1sh.anotherwidget.action.UPDATE_STEPS" />
+                <action android:name="dm1sh.anotherwidget.action.CLEAR_NOTIFICATION" />
+                <action android:name="dm1sh.anotherwidget.action.REFRESH" />
                 <action android:name="com.sec.android.widgetapp.APPWIDGET_RESIZE" />
                 <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
                 <action android:name="android.app.action.NEXT_ALARM_CLOCK_CHANGED" />
@@ -123,15 +156,36 @@
                 <action android:name="android.intent.action.ACTION_POWER_DISCONNECTED"/>
                 <action android:name="android.intent.action.BATTERY_LOW"/>
                 <action android:name="android.intent.action.BATTERY_OKAY"/>
-                <action android:name="android.intent.action.BATTERY_CHANGED"/>
             </intent-filter>
         </receiver>
     </application>
 
     <queries>
-        <package android:name="com.google.android.apps.fitness"/>
+        <package android:name="com.google.android.apps.healthdata" />
+        <package android:name="com.google.android.googlequicksearchbox" />
         <intent>
             <action android:name="android.intent.action.MAIN" />
+        </intent>
+        <intent>
+            <action android:name="android.intent.action.SHOW_ALARMS" />
+        </intent>
+        <intent>
+            <action android:name="android.intent.action.SET_ALARM" />
+        </intent>
+        <intent>
+            <action android:name="android.intent.action.VIEW" />
+            <data android:mimeType="vnd.android.cursor.item/event" />
+        </intent>
+        <intent>
+            <action android:name="android.intent.action.VIEW" />
+            <data android:scheme="content" />
+        </intent>
+        <intent>
+            <action android:name="android.intent.action.VIEW" />
+            <data android:scheme="geo" />
+        </intent>
+        <intent>
+            <action android:name="androidx.health.ACTION_SHOW_PERMISSIONS_RATIONALE" />
         </intent>
     </queries>
 </manifest>

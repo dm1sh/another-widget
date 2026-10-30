@@ -54,6 +54,18 @@ object SettingsStringHelper {
         }
     }
 
+    fun getNextAlarmWindowString(window: Constants.NextAlarmWindow): Int {
+        return when (window) {
+            Constants.NextAlarmWindow.ALWAYS -> R.string.settings_next_alarm_window_always
+            Constants.NextAlarmWindow.THIRTY_MINUTES -> R.string.settings_next_alarm_window_30m
+            Constants.NextAlarmWindow.ONE_HOUR -> R.string.settings_next_alarm_window_1h
+            Constants.NextAlarmWindow.THREE_HOURS -> R.string.settings_next_alarm_window_3h
+            Constants.NextAlarmWindow.SIX_HOURS -> R.string.settings_next_alarm_window_6h
+            Constants.NextAlarmWindow.TWELVE_HOURS -> R.string.settings_next_alarm_window_12h
+            Constants.NextAlarmWindow.TWENTY_FOUR_HOURS -> R.string.settings_next_alarm_window_24h
+        }
+    }
+
     fun getCustomFontLabel(context: Context, font: Int): String {
         return when (font) {
             Constants.CUSTOM_FONT_GOOGLE_SANS -> context.getString(R.string.custom_font_subtitle_1) + " - ${getVariantLabel(context, Preferences.customFontVariant)}"

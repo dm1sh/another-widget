@@ -259,7 +259,7 @@
     <string name="settings_music_players_filter_subtitle">Choose your relevant music players</string>
     <string name="settings_show_music_subtitle">We use the music players\' notification to show the current playing song.</string>
     <string name="settings_low_battery_level_subtitle">Get advised when the device has the battery low or is charging.</string>
-    <string name="settings_daily_steps_subtitle">View your daily steps for a brief moment after finishing a walk or a run.</string>
+    <string name="settings_daily_steps_subtitle">Show your daily step count from Health Connect.</string>
     <string name="settings_show_next_alarm_subtitle">View your next clock alarm.\nCheck if your default clock app is the only one setting alarms.</string>
     <string name="settings_show_next_alarm_app_title">Alarm set by %s</string>
     <string name="settings_show_next_alarm_app_subtitle_wrong">The next alarm clock seems to be wrong</string>
@@ -400,4 +400,39 @@
     <string name="color_copied">Color copied into the clipboard.</string>
     <string name="error_copy_color">The color cannot be copied.</string>
     <string name="default_apps_settings_header">Default apps</string>
+
+    <!-- Next Alarm Window -->
+    <string name="settings_next_alarm_window_title">Show alarm within</string>
+    <string name="settings_next_alarm_window_always">Always</string>
+    <string name="settings_next_alarm_window_30m">30 minutes</string>
+    <string name="settings_next_alarm_window_1h">1 hour</string>
+    <string name="settings_next_alarm_window_3h">3 hours</string>
+    <string name="settings_next_alarm_window_6h">6 hours</string>
+    <string name="settings_next_alarm_window_12h">12 hours</string>
+    <string name="settings_next_alarm_window_24h">24 hours</string>
+
+    <!-- Health Connect -->
+    <string name="health_connect" translatable="false">Health Connect</string>
+    <string name="health_connect_connected">Permission granted</string>
+    <string name="health_connect_not_connected">Permission not granted</string>
+    <string name="action_manage">Manage</string>
+    <string name="health_connect_privacy_rationale">Another Widget reads your daily step count locally from Android Health Connect solely to display it in your home screen widget. Step data never leaves your device.</string>
+
+    <!-- Language & Backup -->
+    <string name="settings_language_title">App language</string>
+    <string name="settings_backup_restore_title"><![CDATA[Backup & Restore]]></string>
+    <string name="settings_backup_restore_subtitle">Export or import widget settings as JSON</string>
+    <string name="backup_restore_description">Export your widget layout, colors, calendar, weather, and glance preferences to a JSON file, or restore a previous backup using the system file picker.</string>
+    <string name="backup_include_api_keys_title">Include weather API keys</string>
+    <string name="backup_include_api_keys_subtitle">Export and restore personal weather provider API keys</string>
+    <string name="backup_export_title">Export backup</string>
+    <string name="backup_export_subtitle">Save settings to a JSON file</string>
+    <string name="backup_restore_action_title">Restore backup</string>
+    <string name="backup_restore_action_subtitle">Load settings from a JSON file</string>
+    <string name="action_restore">Restore</string>
+    <string name="backup_export_success">Backup exported successfully.</string>
+    <string name="backup_export_error">Could not export backup file.</string>
+    <string name="backup_restore_invalid_error">Selected file is not a valid Another Widget backup.</string>
+    <string name="backup_restore_confirm_message">Restore %1$d settings from backup (%2$s)? Current widget settings will be overwritten.</string>
+    <string name="backup_restore_success">Restored %d settings.</string>
 </resources>

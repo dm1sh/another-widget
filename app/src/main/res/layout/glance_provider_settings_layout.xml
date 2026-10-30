@@ -119,6 +119,40 @@
                 android:paddingBottom="16dp"
                 android:paddingLeft="24dp"
                 android:paddingRight="24dp"
+                android:clickable="true"
+                android:focusable="true"
+                android:background="?android:attr/selectableItemBackground"
+                android:gravity="center_vertical"
+                android:visibility="gone"
+                android:id="@+id/action_next_alarm_window"
+                android:orientation="horizontal">
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:paddingLeft="8dp"
+                    android:paddingRight="8dp"
+                    android:orientation="vertical">
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textSize="16sp"
+                        style="@style/AnotherWidget.Settings.Title"
+                        android:text="@string/settings_next_alarm_window_title"/>
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textSize="14sp"
+                        android:id="@+id/next_alarm_window_label"
+                        style="@style/AnotherWidget.Settings.Subtitle"/>
+                </LinearLayout>
+            </LinearLayout>
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingTop="16dp"
+                android:paddingBottom="16dp"
+                android:paddingLeft="24dp"
+                android:paddingRight="24dp"
                 android:gravity="center_vertical"
                 android:id="@+id/alarm_set_by_container"
                 android:orientation="horizontal">
@@ -301,13 +335,14 @@
                         android:layout_height="wrap_content"
                         android:textSize="16sp"
                         style="@style/AnotherWidget.Settings.Title"
-                        android:text="@string/google_fit"/>
+                        android:id="@+id/google_fit_title"
+                        android:text="@string/health_connect"/>
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:textSize="14sp"
                         android:id="@+id/google_fit_status_label"
-                        android:text="@string/google_fit_account_not_connected"
+                        android:text="@string/health_connect_not_connected"
                         style="@style/AnotherWidget.Settings.Subtitle"/>
                 </LinearLayout>
                 <com.google.android.material.button.MaterialButton

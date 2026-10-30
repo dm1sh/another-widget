@@ -62,16 +62,16 @@ class ClockFragment : Fragment() {
         viewModel = ViewModelProvider(activity as MainActivity).get(MainViewModel::class.java)
         binding = FragmentTabClockBinding.inflate(inflater)
 
-        subscribeUi(viewModel)
-
-        binding.lifecycleOwner = this
+        binding.lifecycleOwner = viewLifecycleOwner
         binding.viewModel = viewModel
 
         return binding.root
     }
 
-    override fun onActivityCreated(savedInstanceState: Bundle?) {
-        super.onActivityCreated(savedInstanceState)
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+
+        subscribeUi(viewModel)
 
         binding.ampmIndicatorToggle.setCheckedImmediatelyNoEvent(Preferences.showAMPMIndicator)
 
@@ -124,7 +124,7 @@ class ClockFragment : Fragment() {
                     binding.clockTextColorLabel.text = getString(R.string.transparent)
                 } else {
                     binding.clockTextColorLabel.text =
-                        "#%s".format(Integer.toHexString(ColorHelper.getClockFontColor(activity?.isDarkTheme() == true))).toUpperCase()
+                        "#%s".format(Integer.toHexString(ColorHelper.getClockFontColor(activity?.isDarkTheme() == true))).uppercase(java.util.Locale.ROOT)
                 }
             }
         }
@@ -135,7 +135,7 @@ class ClockFragment : Fragment() {
                     binding.clockTextColorLabel.text = getString(R.string.transparent)
                 } else {
                     binding.clockTextColorLabel.text =
-                        "#%s".format(Integer.toHexString(ColorHelper.getClockFontColor(activity?.isDarkTheme() == true))).toUpperCase()
+                        "#%s".format(Integer.toHexString(ColorHelper.getClockFontColor(activity?.isDarkTheme() == true))).uppercase(java.util.Locale.ROOT)
                 }
             }
         }

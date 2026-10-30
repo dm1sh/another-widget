@@ -1,33 +1,25 @@
 package com.tommasoberlose.anotherwidget.ui.activities.tabs
 
-import android.Manifest
 import android.app.Activity
-import android.location.Address
-import android.location.Geocoder
 import android.os.Bundle
-import android.text.method.LinkMovementMethod
 import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.isVisible
-import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.chibatching.kotpref.bulk
-import com.karumi.dexter.Dexter
-import com.karumi.dexter.MultiplePermissionsReport
-import com.karumi.dexter.PermissionToken
-import com.karumi.dexter.listener.PermissionRequest
-import com.karumi.dexter.listener.multi.MultiplePermissionsListener
 import com.tommasoberlose.anotherwidget.R
 import com.tommasoberlose.anotherwidget.databinding.ActivityTimeZoneSelectorBinding
 import com.tommasoberlose.anotherwidget.global.Preferences
-import com.tommasoberlose.anotherwidget.network.TimeZonesApi
-import com.tommasoberlose.anotherwidget.network.WeatherNetworkApi
+import com.tommasoberlose.anotherwidget.ui.viewmodels.tabs.TimeZoneEntry
 import com.tommasoberlose.anotherwidget.ui.viewmodels.tabs.TimeZoneSelectorViewModel
 import com.tommasoberlose.anotherwidget.ui.widgets.MainWidget
-import com.tommasoberlose.anotherwidget.utils.toast
-import kotlinx.coroutines.*
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import net.idik.lib.slimadapter.SlimAdapter
 
 class TimeZoneSelectorActivity : AppCompatActivity() {
@@ -35,117 +27,106 @@ class TimeZoneSelectorActivity : AppCompatActivity() {
     private lateinit var adapter: SlimAdapter
     private lateinit var viewModel: TimeZoneSelectorViewModel
     private lateinit var binding: ActivityTimeZoneSelectorBinding
+    private var allEntries: List<TimeZoneEntry> = emptyList()
+    private var searchJob: Job? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        viewModel = ViewModelProvider(this).get(TimeZoneSelectorViewModel::class.java)
+        viewModel = ViewModelProvider(this)[TimeZoneSelectorViewModel::class.java]
         binding = ActivityTimeZoneSelectorBinding.inflate(layoutInflater)
 
-        binding.geonameCredits.movementMethod = LinkMovementMethod.getInstance()
-
         binding.listView.setHasFixedSize(true)
-        val mLayoutManager = LinearLayoutManager(this)
-        binding.listView.layoutManager = mLayoutManager
+        binding.listView.layoutManager = LinearLayoutManager(this)
 
         adapter = SlimAdapter.create()
         adapter
             .register<String>(R.layout.custom_location_item) { _, injector ->
                 injector
                     .text(R.id.text, getString(R.string.no_time_zone_label))
+                    .clicked(R.id.item) {
+                        clearSelectedTimeZone()
+                    }
                     .clicked(R.id.text) {
-                        Preferences.bulk {
-                            altTimezoneId = ""
-                            altTimezoneLabel = ""
-                        }
-                        MainWidget.updateWidget(this@TimeZoneSelectorActivity)
-                        setResult(Activity.RESULT_OK)
-                        finish()
+                        clearSelectedTimeZone()
                     }
             }
-            .register<Address>(R.layout.custom_location_item) { item, injector ->
-                injector.text(R.id.text, item.getAddressLine(0))
-                injector.clicked(R.id.item) {
-                    binding.loader.visibility = View.VISIBLE
-                    lifecycleScope.launch(Dispatchers.IO) {
-                        val networkApi = TimeZonesApi(this@TimeZoneSelectorActivity)
-                        val id = networkApi.getTimeZone(item.latitude.toString(), item.longitude.toString())
-
-                        if (id != null) {
-                            Preferences.bulk {
-                                altTimezoneId = id
-                                altTimezoneLabel = try {
-                                    item.locality
-                                } catch (ex: Exception) {
-                                    item.getAddressLine(0)
-                                }
-                            }
-                            MainWidget.updateWidget(this@TimeZoneSelectorActivity)
-                            setResult(Activity.RESULT_OK)
-                            finish()
-                        } else {
-                            withContext(Dispatchers.Main) {
-                                binding.loader.visibility = View.INVISIBLE
-                                toast(getString(R.string.time_zone_search_error_message))
-                            }
-                        }
+            .register<TimeZoneEntry>(R.layout.custom_location_item) { item, injector ->
+                val text = "${item.label} (${item.subtitle})"
+                injector
+                    .text(R.id.text, text)
+                    .clicked(R.id.item) {
+                        selectTimeZone(item)
                     }
-                }
+                    .clicked(R.id.text) {
+                        selectTimeZone(item)
+                    }
             }
             .attachTo(binding.listView)
-
-
-        viewModel.addresses.observe(this, Observer {
-            adapter.updateData(listOf("Default") + it)
-        })
 
         setupListener()
         subscribeUi(binding, viewModel)
 
-        binding.location.requestFocus()
+        binding.loader.visibility = View.VISIBLE
+        lifecycleScope.launch(Dispatchers.IO) {
+            val loaded = TimeZoneSelectorViewModel.loadSystemTimeZones()
+            withContext(Dispatchers.Main) {
+                allEntries = loaded
+                viewModel.entries.value = TimeZoneSelectorViewModel.filterEntries(loaded, viewModel.locationInput.value)
+                binding.loader.visibility = View.INVISIBLE
+            }
+        }
 
+        binding.location.requestFocus()
         setContentView(binding.root)
     }
 
-    private var searchJob: Job? = null
+    private fun clearSelectedTimeZone() {
+        Preferences.bulk {
+            altTimezoneId = ""
+            altTimezoneLabel = ""
+        }
+        MainWidget.updateWidget(this)
+        setResult(Activity.RESULT_OK)
+        finish()
+    }
+
+    private fun selectTimeZone(item: TimeZoneEntry) {
+        Preferences.bulk {
+            altTimezoneId = item.id
+            altTimezoneLabel = item.label
+        }
+        MainWidget.updateWidget(this)
+        setResult(Activity.RESULT_OK)
+        finish()
+    }
 
     private fun subscribeUi(binding: ActivityTimeZoneSelectorBinding, viewModel: TimeZoneSelectorViewModel) {
         binding.viewModel = viewModel
         binding.lifecycleOwner = this
 
-        viewModel.addresses.observe(this, Observer {
-            adapter.updateData(listOf("Default") + it)
+        viewModel.entries.observe(this) { list ->
+            adapter.updateData(listOf("Default") + list)
             binding.loader.visibility = View.INVISIBLE
-        })
+        }
 
-        viewModel.locationInput.observe(this, Observer { location ->
-            binding.loader.visibility = View.VISIBLE
+        viewModel.locationInput.observe(this) { query ->
+            binding.clearSearch.isVisible = !query.isNullOrBlank()
+            if (allEntries.isEmpty()) return@observe
             searchJob?.cancel()
-            searchJob = lifecycleScope.launch(Dispatchers.IO) {
-                delay(200)
-                val list = if (location == null || location == "") {
-                    viewModel.addresses.value!!
-                } else {
-                    val coder = Geocoder(this@TimeZoneSelectorActivity)
-                    try {
-                        coder.getFromLocationName(location, 10) as ArrayList<Address>
-                    } catch (ignored: Exception) {
-                        emptyList<Address>()
-                    }
-                }
+            searchJob = lifecycleScope.launch(Dispatchers.Default) {
+                delay(100)
+                val filtered = TimeZoneSelectorViewModel.filterEntries(allEntries, query)
                 withContext(Dispatchers.Main) {
-                    viewModel.addresses.value = list
-                    binding.loader.visibility = View.INVISIBLE
+                    viewModel.entries.value = filtered
                 }
-
             }
-            binding.clearSearch.isVisible = location.isNotBlank()
-        })
+        }
     }
 
     private fun setupListener() {
         binding.actionBack.setOnClickListener {
-            onBackPressed()
+            onBackPressedDispatcher.onBackPressed()
         }
 
         binding.clearSearch.setOnClickListener {

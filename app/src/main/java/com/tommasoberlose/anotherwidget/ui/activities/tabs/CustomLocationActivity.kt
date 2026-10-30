@@ -52,6 +52,7 @@ class CustomLocationActivity : AppCompatActivity() {
                         remove(Preferences::customLocationLat)
                         remove(Preferences::customLocationLon)
                         remove(Preferences::customLocationAdd)
+                        remove(Preferences::autoLocationLabel)
                     }
                     setResult(Activity.RESULT_OK)
                     finish()
@@ -101,11 +102,11 @@ class CustomLocationActivity : AppCompatActivity() {
             searchJob = lifecycleScope.launch(Dispatchers.IO) {
                 delay(200)
                 val list = if (location == null || location == "") {
-                    viewModel.addresses.value!!
+                    viewModel.addresses.value.orEmpty()
                 } else {
                     val coder = Geocoder(this@CustomLocationActivity)
                     try {
-                        coder.getFromLocationName(location, 10) as ArrayList<Address>
+                        coder.getFromLocationName(location, 10).orEmpty()
                     } catch (ignored: Exception) {
                         emptyList<Address>()
                     }

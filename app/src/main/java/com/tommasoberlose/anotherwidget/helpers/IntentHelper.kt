@@ -8,17 +8,16 @@ import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
+import android.os.Build
 import android.provider.AlarmClock
 import android.provider.CalendarContract
 import android.provider.CalendarContract.Events
-import android.util.Log
-import com.tommasoberlose.anotherwidget.R
+import androidx.health.connect.client.HealthConnectClient
 import com.tommasoberlose.anotherwidget.global.Actions
 import com.tommasoberlose.anotherwidget.global.Preferences
 import com.tommasoberlose.anotherwidget.models.Event
 import com.tommasoberlose.anotherwidget.receivers.UpdatesReceiver
 import com.tommasoberlose.anotherwidget.ui.widgets.MainWidget
-import com.tommasoberlose.anotherwidget.utils.toast
 import java.util.*
 
 
@@ -54,12 +53,11 @@ object IntentHelper {
     fun getGoogleMapsIntentFromAddress(context: Context, address: String): Intent {
         val gmmIntentUri: Uri = Uri.parse("geo:0,0?q=${Uri.encode(address)}")
         val mapIntent = Intent(Intent.ACTION_VIEW, gmmIntentUri)
-        //mapIntent.`package` = "com.google.android.apps.maps"
 
         return if (mapIntent.resolveActivity(context.packageManager) != null) {
             mapIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
         } else {
-            val map = "https://www.google.com/maps/search/?api=1&query=${Uri.encode(address)}"
+            val map = "https://www.openstreetmap.org/search?query=${Uri.encode(address)}"
             Intent(Intent.ACTION_VIEW, Uri.parse(map)).setFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
         }
     }
@@ -70,8 +68,14 @@ object IntentHelper {
                 Intent(Intent.ACTION_VIEW).apply {
                     flags = Intent.FLAG_ACTIVITY_NEW_TASK
                     data = Uri.parse("dynact://velour/weather/ProxyActivity")
-                    component = ComponentName("com.google.android.googlequicksearchbox", "com.google.android.apps.gsa.velour.DynamicActivityTrampoline")
-                    setClassName("com.google.android.googlequicksearchbox", "com.google.android.apps.gsa.velour.DynamicActivityTrampoline")
+                    component = ComponentName(
+                        "com.google.android.googlequicksearchbox",
+                        "com.google.android.apps.gsa.velour.DynamicActivityTrampoline"
+                    )
+                    setClassName(
+                        "com.google.android.googlequicksearchbox",
+                        "com.google.android.apps.gsa.velour.DynamicActivityTrampoline"
+                    )
                 }
             }
             DO_NOTHING_OPTION -> {
@@ -100,11 +104,23 @@ object IntentHelper {
             .appendPath("time")
             .appendPath((time ?: Calendar.getInstance().timeInMillis).toString())
             .build()
+        val pm: PackageManager = context.packageManager
         return when (Preferences.calendarAppPackage) {
             DEFAULT_OPTION -> {
-                Intent(Intent.ACTION_VIEW).apply {
+                val viewIntent = Intent(Intent.ACTION_VIEW).apply {
                     flags = Intent.FLAG_ACTIVITY_NEW_TASK
                     data = calendarUri
+                }
+                if (viewIntent.resolveActivity(pm) != null) {
+                    viewIntent
+                } else {
+                    val categoryIntent = Intent.makeMainSelectorActivity(
+                        Intent.ACTION_MAIN,
+                        Intent.CATEGORY_APP_CALENDAR
+                    ).apply {
+                        addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                    }
+                    if (categoryIntent.resolveActivity(pm) != null) categoryIntent else Intent()
                 }
             }
             DO_NOTHING_OPTION -> {
@@ -114,13 +130,19 @@ object IntentHelper {
                 getWidgetRefreshIntent(context)
             }
             else -> {
-                val pm: PackageManager = context.packageManager
                 try {
-                    pm.getLaunchIntentForPackage(Preferences.calendarAppPackage)!!.apply {
-                        addCategory(Intent.CATEGORY_LAUNCHER)
-                        flags = Intent.FLAG_ACTIVITY_NEW_TASK
-                        action = Intent.ACTION_VIEW
+                    val targetedViewIntent = Intent(Intent.ACTION_VIEW).apply {
+                        setPackage(Preferences.calendarAppPackage)
                         data = calendarUri
+                        flags = Intent.FLAG_ACTIVITY_NEW_TASK
+                    }
+                    if (targetedViewIntent.resolveActivity(pm) != null) {
+                        targetedViewIntent
+                    } else {
+                        pm.getLaunchIntentForPackage(Preferences.calendarAppPackage)!!.apply {
+                            addCategory(Intent.CATEGORY_LAUNCHER)
+                            flags = Intent.FLAG_ACTIVITY_NEW_TASK
+                        }
                     }
                 } catch (e: Exception) {
                     Intent()
@@ -130,58 +152,47 @@ object IntentHelper {
     }
 
     fun getEventIntent(context: Context, e: Event, forceEventDetails: Boolean = false): Intent {
+        if (!forceEventDetails) {
+            if (Preferences.calendarAppPackage == DO_NOTHING_OPTION) return Intent()
+            if (Preferences.calendarAppPackage == REFRESH_WIDGET_OPTION) return getWidgetRefreshIntent(context)
+        }
         return when (Preferences.openEventDetails || forceEventDetails) {
             true -> {
                 val uri = ContentUris.withAppendedId(Events.CONTENT_URI, e.eventID)
-                if (Preferences.calendarAppPackage == "") {
-                    Intent(Intent.ACTION_VIEW).apply {
-                        data = uri
-                        flags = (Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_RESET_TASK_IF_NEEDED or Intent.FLAG_ACTIVITY_CLEAR_TOP)
-                        if (!e.allDay) {
-                            putExtra(CalendarContract.EXTRA_EVENT_BEGIN_TIME, e.startDate)
-                            putExtra(CalendarContract.EXTRA_EVENT_END_TIME, e.endDate)
-                        } else {
-                            val start = Calendar.getInstance().apply {
-                                timeInMillis = e.startDate
-                            }
-                            val end = Calendar.getInstance().apply {
-                                timeInMillis = e.endDate
-                            }
-
-                            putExtra(CalendarContract.EXTRA_EVENT_BEGIN_TIME, e.startDate + start.timeZone.getOffset(start.timeInMillis))
-                            putExtra(CalendarContract.EXTRA_EVENT_END_TIME, e.endDate + end.timeZone.getOffset(end.timeInMillis))
-                            putExtra(CalendarContract.EXTRA_EVENT_ALL_DAY, 1)
-                        }
+                val eventIntent = Intent(Intent.ACTION_VIEW).apply {
+                    data = uri
+                    flags = (Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_RESET_TASK_IF_NEEDED or Intent.FLAG_ACTIVITY_CLEAR_TOP)
+                    if (Preferences.calendarAppPackage != DEFAULT_OPTION &&
+                        Preferences.calendarAppPackage != DO_NOTHING_OPTION &&
+                        Preferences.calendarAppPackage != REFRESH_WIDGET_OPTION
+                    ) {
+                        setPackage(Preferences.calendarAppPackage)
                     }
-                } else {
-                    val calendarIntent = getCalendarIntent(context)
-                    if (calendarIntent.action == Intent.ACTION_VIEW) {
-                        calendarIntent.apply {
-                            data = uri
-                            if (!e.allDay) {
-                                putExtra(CalendarContract.EXTRA_EVENT_BEGIN_TIME, e.startDate)
-                                putExtra(CalendarContract.EXTRA_EVENT_END_TIME, e.endDate)
-                            } else {
-                                val start = Calendar.getInstance().apply {
-                                    timeInMillis = e.startDate
-                                }
-                                val end = Calendar.getInstance().apply {
-                                    timeInMillis = e.endDate
-                                }
-                                putExtra(
-                                    CalendarContract.EXTRA_EVENT_BEGIN_TIME,
-                                    start.timeInMillis + start.timeZone.getOffset(start.timeInMillis)
-                                )
-                                putExtra(
-                                    CalendarContract.EXTRA_EVENT_END_TIME,
-                                    end.timeInMillis + end.timeZone.getOffset(end.timeInMillis)
-                                )
-                                putExtra(CalendarContract.EXTRA_EVENT_ALL_DAY, 1)
-                            }
-                        }
+                    if (!e.allDay) {
+                        putExtra(CalendarContract.EXTRA_EVENT_BEGIN_TIME, e.startDate)
+                        putExtra(CalendarContract.EXTRA_EVENT_END_TIME, e.endDate)
                     } else {
-                        Intent()
+                        val start = Calendar.getInstance().apply {
+                            timeInMillis = e.startDate
+                        }
+                        val end = Calendar.getInstance().apply {
+                            timeInMillis = e.endDate
+                        }
+                        putExtra(
+                            CalendarContract.EXTRA_EVENT_BEGIN_TIME,
+                            start.timeInMillis + start.timeZone.getOffset(start.timeInMillis)
+                        )
+                        putExtra(
+                            CalendarContract.EXTRA_EVENT_END_TIME,
+                            end.timeInMillis + end.timeZone.getOffset(end.timeInMillis)
+                        )
+                        putExtra(CalendarContract.EXTRA_EVENT_ALL_DAY, 1)
                     }
+                }
+                if (eventIntent.resolveActivity(context.packageManager) != null) {
+                    eventIntent
+                } else {
+                    getCalendarIntent(context, e.startDate)
                 }
             }
             false -> {
@@ -208,6 +219,7 @@ object IntentHelper {
                 try {
                     pm.getLaunchIntentForPackage(Preferences.clockAppPackage)!!.apply {
                         addCategory(Intent.CATEGORY_LAUNCHER)
+                        flags = Intent.FLAG_ACTIVITY_NEW_TASK
                     }
                 } catch (e: Exception) {
                     Intent()
@@ -240,15 +252,18 @@ object IntentHelper {
     }
 
     fun getFitIntent(context: Context): Intent {
-        val pm: PackageManager = context.packageManager
-        return try {
-            pm.getLaunchIntentForPackage("com.google.android.apps.fitness")!!.apply {
-                addCategory(Intent.CATEGORY_LAUNCHER)
-                flags = Intent.FLAG_ACTIVITY_NEW_TASK
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            try {
+                val hcIntent = HealthConnectClient.getHealthConnectManageDataIntent(context).apply {
+                    addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                }
+                if (hcIntent.resolveActivity(context.packageManager) != null) {
+                    return hcIntent
+                }
+            } catch (_: Exception) {
             }
-        } catch (e: Exception) {
-            Intent()
         }
+        return Intent()
     }
 
     fun getNotificationIntent(context: Context): Intent {
