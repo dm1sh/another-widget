@@ -268,18 +268,30 @@ class HelpersUnitTest {
 
     @Test
     fun backupManager_supportsMeteoblueProviderAndApiKeyFiltering() {
-        val raw = mapOf<String, Any?>(
+        val raw = mapOf<String, Any>(
             "weatherProvider" to Constants.WeatherProvider.METEOBLUE.rawValue,
             "weatherProviderApiMeteoblue" to "mb-secret-key"
         )
-        val withKeys = BackupManager.serializeToJson(raw, appVersionCode = 100, appVersionName = "2.2.3", includeApiKeys = true)
-        val restoredWithKeys = BackupManager.parseBackupJson(withKeys, restoreApiKeys = true) as BackupManager.ParseResult.Success
-        assertEquals(Constants.WeatherProvider.METEOBLUE.rawValue, restoredWithKeys.entries["weatherProvider"])
-        assertEquals("mb-secret-key", restoredWithKeys.entries["weatherProviderApiMeteoblue"])
+        val withKeys = BackupManager.serializeToJson(
+            rawPreferences = raw,
+            includeApiKeys = true,
+            appVersion = "2.4.0 (142)",
+            appLanguageTag = "en",
+            exportedAtMs = 1_700_000_000_000L
+        )
+        val restoredWithKeys = BackupManager.parseBackupJson(withKeys, restoreApiKeys = true) as BackupManager.ParseResult.Valid
+        assertEquals(Constants.WeatherProvider.METEOBLUE.rawValue, restoredWithKeys.summary.values["weatherProvider"])
+        assertEquals("mb-secret-key", restoredWithKeys.summary.values["weatherProviderApiMeteoblue"])
 
-        val withoutKeys = BackupManager.serializeToJson(raw, appVersionCode = 100, appVersionName = "2.2.3", includeApiKeys = false)
-        val restoredWithoutKeys = BackupManager.parseBackupJson(withoutKeys, restoreApiKeys = true) as BackupManager.ParseResult.Success
-        assertEquals(Constants.WeatherProvider.METEOBLUE.rawValue, restoredWithoutKeys.entries["weatherProvider"])
-        assertFalse(restoredWithoutKeys.entries.containsKey("weatherProviderApiMeteoblue"))
+        val withoutKeys = BackupManager.serializeToJson(
+            rawPreferences = raw,
+            includeApiKeys = false,
+            appVersion = "2.4.0 (142)",
+            appLanguageTag = "en",
+            exportedAtMs = 1_700_000_000_000L
+        )
+        val restoredWithoutKeys = BackupManager.parseBackupJson(withoutKeys, restoreApiKeys = true) as BackupManager.ParseResult.Valid
+        assertEquals(Constants.WeatherProvider.METEOBLUE.rawValue, restoredWithoutKeys.summary.values["weatherProvider"])
+        assertFalse(restoredWithoutKeys.summary.values.containsKey("weatherProviderApiMeteoblue"))
     }
 }
