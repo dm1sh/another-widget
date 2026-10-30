@@ -32,11 +32,7 @@ object CalendarHelper {
         }
         val provider = CalendarProvider(context)
         val data = provider.calendars
-        return if (data != null) {
-            data.list
-        } else {
-            calendarList
-        }
+        return data?.list ?: calendarList
     }
 
     fun getFilteredCalendarIdList(): List<Long> {

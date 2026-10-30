@@ -114,7 +114,8 @@ class UpdateCalendarWorker(context: Context, params: WorkerParameters) : Worker(
                                             calendarID = e.calendarId,
                                             allDay = e.allDay,
                                             address = e.eventLocation ?: "",
-                                            selfAttendeeStatus = e.selfAttendeeStatus.toInt(),
+                                            selfAttendeeStatus = e.selfAttendeeStatus?.toIntOrNull()
+                                                ?: CalendarContract.Attendees.ATTENDEE_STATUS_NONE,
                                             availability = e.availability
                                         )
                                     )
