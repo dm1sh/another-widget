@@ -6,7 +6,6 @@ import android.graphics.BlurMaskFilter
 import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
-import android.graphics.Rect
 import android.util.TypedValue
 import android.widget.ImageView
 import androidx.core.graphics.drawable.toBitmap
@@ -36,20 +35,22 @@ object ImageHelper {
 
         val drawable = originalView.drawable
         if (drawable != null && drawable.intrinsicWidth > 0 && drawable.intrinsicHeight > 0) {
-            val source = drawable.toBitmap().copy(Bitmap.Config.ARGB_8888, false)
+            val targetDensity = resources.displayMetrics.densityDpi
+            val source = drawable.toBitmap().copy(Bitmap.Config.ARGB_8888, false).apply {
+                density = Bitmap.DENSITY_NONE
+            }
             val shadowBitmap = generateShadowBitmap(context, cElevation, source, factor, shadowPref)
             if (shadowBitmap != null) {
-                val combined = Bitmap.createBitmap(source.width, source.height, Bitmap.Config.ARGB_8888)
-                val canvas = Canvas(combined)
-                val rect = Rect()
-                canvas.getClipBounds(rect)
-                val padding = 2 * getBlurRadius(context, cElevation).toInt()
-                rect.inset(-padding, -padding)
-                canvas.save()
-                canvas.clipRect(rect)
-                canvas.drawBitmap(shadowBitmap, 0f, 2f, null)
-                canvas.restore()
+                val combined = Bitmap.createBitmap(source.width, source.height, Bitmap.Config.ARGB_8888).apply {
+                    density = Bitmap.DENSITY_NONE
+                }
+                val canvas = Canvas(combined).apply {
+                    density = Bitmap.DENSITY_NONE
+                }
+                val yOffset = (source.height * 0.025f).coerceAtLeast(1f)
+                canvas.drawBitmap(shadowBitmap, 0f, yOffset, null)
                 shadowBitmap.recycle()
+                combined.density = targetDensity
                 setImageBitmap(combined)
             } else {
                 setImageDrawable(null)
@@ -78,7 +79,9 @@ object ImageHelper {
 
         if (opacity <= 0f) return null
 
-        val shadow = Bitmap.createBitmap(bitmap.width, bitmap.height, Bitmap.Config.ARGB_8888)
+        val shadow = Bitmap.createBitmap(bitmap.width, bitmap.height, Bitmap.Config.ARGB_8888).apply {
+            density = Bitmap.DENSITY_NONE
+        }
         val blurRadius = getBlurRadius(context, cElevation)
         val blurPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
             if (blurRadius > 0f) {
@@ -86,13 +89,17 @@ object ImageHelper {
             }
         }
         val offset = IntArray(2)
-        val alphaMask = bitmap.extractAlpha(blurPaint, offset)
+        val alphaMask = bitmap.extractAlpha(blurPaint, offset).apply {
+            density = Bitmap.DENSITY_NONE
+        }
         val shadowPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
             color = Color.BLACK
             alpha = (255f * opacity).roundToInt().coerceIn(0, 255)
         }
 
-        Canvas(shadow).drawBitmap(
+        Canvas(shadow).apply {
+            density = Bitmap.DENSITY_NONE
+        }.drawBitmap(
             alphaMask,
             offset[0].toFloat(),
             offset[1].toFloat(),
